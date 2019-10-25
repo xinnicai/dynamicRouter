@@ -16,7 +16,7 @@
         <span v-if="!tag.meta.affix" class="el-icon-close" @click.prevent.stop="closeSelectedTag(tag)" />
       </router-link>
     </scroll-pane>
-    <ul v-show="visible" :style="{left:left+'px',top:top+'px'}" class="contextmenu">
+    <ul v-show="visible" :style="{left:left+'px'}" class="contextmenu">
       <li @click="refreshSelectedTag(selectedTag)">刷新</li>
       <li v-if="!(selectedTag.meta&&selectedTag.meta.affix)" @click="closeSelectedTag(selectedTag)">关闭</li>
       <li @click="closeOthersTags">关闭其他</li>
@@ -219,9 +219,9 @@ export default {
         margin-right: 15px;
       }
       &.active {
-        background-color: #42b983;
+        background-color: #419eff;
         color: #fff;
-        border-color: #42b983;
+        border-color: #419eff;
         &::before {
           content: '';
           background: #fff;

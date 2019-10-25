@@ -2,22 +2,8 @@
   <div class="crud">
      <!--crud头部，包含可操作按钮-->
     <el-row class="crud-header">
-      <el-col :span="10" v-if="gridBtnConfig.find">
-          <el-input placeholder="输入名称" style="width: 300px" v-model="queryName"></el-input>
-          <el-button icon="el-icon-search" type="primary" size="mini" @click="getData">搜索</el-button>
-      </el-col>
       <el-button type="primary" size="mini" v-if="gridBtnConfig.create" @click="createOrUpdate(null)">新增        
       </el-button>
-      <el-dropdown @command="addGroupOrDic"
-									 icon="el-icon-add">
-        <el-button type="primary" size="mini">
-            <i class="el-icon-document-add"></i>新增
-        </el-button> 
-        <el-dropdown-menu slot="dropdown">
-          <el-dropdown-item command="group">分组</el-dropdown-item>
-          <el-dropdown-item command="dic">字典</el-dropdown-item>
-        </el-dropdown-menu>
-      </el-dropdown>
     </el-row>
     <!--crud主体内容区，展示表格内容-->
     <el-table
@@ -26,7 +12,7 @@
       highlight-current-row
       @current-change="selectItem"
       v-loading="listLoading"
-      style="width: 100%">
+      style="width: 100%" @cell-dblclick="celldblclick">
       <el-table-column
         v-for="(item,index) in gridConfig"
         :key="index"
@@ -41,16 +27,18 @@
             :column="item"
             :index="scope.$index"
             :render="item.render"></Cell>
-          <span v-else>{{scope.row[item.prop]}}</span>
+            <span v-else>{{scope.row[item.prop]}}</span>
+          <!-- <input class="edit-cell" v-if="showEdit[$index]"    v-model="row.Name">
+            <span v-if="!showEdit[$index]">{{row.Name}}</span> -->
         </template>
       </el-table-column>
-      <el-table-column fixed="right" v-if="!hideEditArea" label="操作" :width="gridEditWidth?gridEditWidth:200">
+      <el-table-column fixed="right" v-if="!hideEditArea" label="操作" :width="gridEditWidth?gridEditWidth:250">
         <template slot-scope="scope">
-          <el-button size="mini" v-if="gridBtnConfig.update" type="primary"
-                     @click="createOrUpdate(scope.row)">修改
-          </el-button>
+          <el-button size="mini" v-if="scope.row.save===true" type="primary" @click="save(scope.row)">保存</el-button>
+          <el-button size="mini" v-if="scope.row.save!=true" type="primary" @click="edit(scope.row)">编辑</el-button>
+          <el-button size="mini" v-if="scope.row.active===false" type="primary" @click="active(scope.row)">激活</el-button>
           <el-button size="mini" v-if="gridBtnConfig.delete" type="danger" @click="remove(scope.row)">删除</el-button>
-          <el-button size="mini" v-if="gridBtnConfig.view" type="primary" @click="view(scope.row)">查看</el-button>
+          
           <!--扩展按钮-->
           <!-- <el-button size="mini" @click="handleEmit(item.emitName, scope.row)"
                      v-if="gridBtnConfig.expands && gridBtnConfig.expands.length>0"
@@ -118,7 +106,8 @@
       // 表格参数
       'tableParams',
       // 选中树数据
-      'selectTreeData'
+      'selectTreeData',
+      'pushTableData'
     ],
     data() {
       return {
@@ -192,16 +181,41 @@
         // }, err => {
         //   this.listLoading = false;
         // });
+        
       },
       createOrUpdate(item) {
-        this.$refs.dialogForm.resetForm();
-        // 新增时，模态框数据需要拷贝基础定义的数据模型，修改时，直接拷贝当前行数据
-        this.formModel = item ? Object.assign({}, item) : Object.assign({}, this.formData) ;
-        this.formModel.dic=this.selectTreeData.name
-        this.dialogTitle = (item ? '修改' : '新增') + this.formTitle;
+        // this.$refs.dialogForm.resetForm();
+        // // 新增时，模态框数据需要拷贝基础定义的数据模型，修改时，直接拷贝当前行数据
+        // this.formModel = item ? Object.assign({}, item) : Object.assign({}, this.formData) ;
+        // this.formModel.dic=this.selectTreeData.name
+        // this.dialogTitle = (item ? '修改' : '新增') + this.formTitle;
 
-        this.$refs.dialogForm.showDialog();
+        // this.$refs.dialogForm.showDialog();
+        this.showGridData.push(
+           this.pushTableData
+        )
+
       },
+      celldblclick(row, column, cell, event){
+        if(column.property == "description" ||row.dataType==='new'){
+            let value = row[column.property]
+            cell.removeChild(cell.firstChild)
+            let input1 = document.createElement('input');
+            input1.id="myinput"
+            input1.className="crud—input"
+            console.log(input1)
+            input1.value=value
+            if(value===""){
+                input1.placeholder="请输入..."
+            }
+            // let input = document.createElement('my-input')
+            // document.getElementById("app").appendChild('my-input')
+            cell.appendChild(input1)
+            // let div = document.createElement("div")
+            // div.className="cell"
+            // console.log(this.inputTemplate)
+        }
+    },
       // 处理相应父组件的事件方法
       handleEmit(emitName,row) {
         this.$emit(emitName, row);
@@ -221,11 +235,46 @@
           this.$message.success(this.dialogTitle + '成功！');
         })
       },
+      active(data){
+        // 
+
+      },
       remove(data) {
         //  处理删除逻辑
+        axios({
+                url: this.baseUrl+this.apiService,
+                method: 'delete',
+                headers: '',
+                data: data.id
+            }).then(res => {
+                
+                this.getData();
+            });
       },
-      view(data){
+      edit(data){
         // 处理查看详情逻辑
+        axios({
+                url: this.baseUrl+this.apiService,
+                method: 'put',
+                headers: '',
+                data: data
+            }).then(res => {
+                
+                this.getData();
+            });
+      },
+      save(data){
+        debugger
+        //   TODO
+          axios({
+                url: this.baseUrl+this.apiService,
+                method: 'post',
+                headers: '',
+                data: data
+            }).then(res => {
+                
+                this.getData();
+            });
       }
     },
     watch: {
@@ -243,10 +292,19 @@
       margin-bottom: 10px;
       line-height: 40px;
     }
-
+    
     .crud-pagination {
       text-align: right;
       margin-top: 10px;
     }
+    td{
+        background-color: #f8f8f8;
+         .crud—input{
+        
   }
+    }
+  }
+ 
+ 
+  
 </style>

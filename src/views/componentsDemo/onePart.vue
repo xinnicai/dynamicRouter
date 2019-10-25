@@ -103,8 +103,8 @@
 </script>
 <style scoped>
 .onePart .BaseCrud{
-  min-height: calc(100vh - 105px)!important;
-  max-height: calc(100vh - 105px)!important;
+  min-height: calc(100vh - 117px)!important;
+  max-height: calc(100vh - 117px)!important;
   overflow: auto;
 }
 </style>

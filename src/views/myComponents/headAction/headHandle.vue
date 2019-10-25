@@ -8,47 +8,36 @@
                             <el-option v-for="(v, index) in versions" :lable="v.version" :value="v.version"
                                     :key="v.id"></el-option>
                         </el-select>
-                        <el-button style="margin-left:10px" @click="addVersionDialog.show = true">新增版本
+                        <el-button style="margin-left:10px" @click="addVersionDialog.show = true">管理版本
                         </el-button>
-                        <el-button v-if="this.version != this.activedVerson">激活版本</el-button>
+                        <!-- <el-button v-if="this.version != this.activedVerson">激活版本</el-button> -->
                     </div>
                 <!-- </el-card> -->
             </el-col>
         </el-row>
         	<!-- 新建版本 -->
-		<el-dialog :title="addVersionDialog.title" :visible.sync="addVersionDialog.show" width="65%" @close="closeVersionDialog">
-			<el-form :rules="addVersionDialog.addVersionRules" ref="addVisionForm" :model="newVersion" label-width="80px">
-				<el-form-item label="源版本">
-					<el-select v-model="newVersion.sourceVersion" placeholder="请选择字典版本" style="width:100%">
-						<el-option v-for="(v, index) in versions" :lable="v.version" :value="v.version"
-								   :key="v.id"></el-option>
-					</el-select>
-				</el-form-item>
-				<el-form-item label="新版本" prop="version">
-					<el-input v-model="newVersion.version"></el-input>
-				</el-form-item>
-				<el-form-item label="是否激活">
-					<el-checkbox v-model="newVersion.active" style="margin-left: 10px"></el-checkbox>
-				</el-form-item>
-				<el-form-item label="说明">
-					<el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="newVersion.description">
-					</el-input>
-				</el-form-item>
-				<el-form-item class="dialog_button">
-					<el-button type="primary" @click="addVersion('addVisionForm')">创建</el-button>
-					<el-button @click="addVersionDialog.show = false">取消</el-button>
-				</el-form-item>
-			</el-form>
+		<el-dialog :title="addVersionDialog.title" :visible.sync="addVersionDialog.show" width="65%" @close="closeVersionDialog" :close-on-click-modal="false" :close-on-press-escape="false">
+			<BaseCrud ref="headTable" :apiService="config.userService" :grid-config="config.gridConfig" :grid-btn-config="config.gridBtnConfig" :gridEditWidth="config.gridEditWidth"
+                    :grid-data="testData"
+                    :form-config="config.formConfig" :form-data="config.formModel" :grid-edit-width="200" :selectTreeData="selectTreeData" :tableParams="config.tableParams"
+                    form-title="字典项" :is-async="true" :pushTableData="config.pushTableData" :sourceVisionData="versions">
+            </BaseCrud>
 		</el-dialog>
     </div>
 </template> 
 <script>
 import axios from 'axios'
+import BaseCrud from '../table/modalEditTable.vue'
 export default {
+    components: {
+      BaseCrud,
+    },
     props: [
         // 下拉框初始值
-        'name'
+        'name',
+        'config'
     ],
+    name: 'header-table-list',
     data:function(){
         var versionType = 'standard';
         // 验证版本唯一
@@ -68,7 +57,7 @@ export default {
             activedVerson:null,
              // 新增版本Dialog属性
             addVersionDialog: {
-                title: '新增版本',
+                title: '管理版本',
                 show: false,
                 addVersionRules: {
                     version: [
@@ -85,17 +74,18 @@ export default {
                 active: true,
                 sourceVersion: null,
             },
+            testData : [],
+            selectTreeData:[]
         }
+        
     },
     methods:{
         loadVersions() {
             axios({
-                url: this.baseUrl+'version',
+                url: this.baseUrl+this.config.userService,
                 method: 'get',
                 headers: {},
-                params: {
-                    type: this.versionType
-                }
+                params: this.config.versionsParams
             }).then(res => {
                 let data = res.data;
                 if (data.success) {
@@ -117,7 +107,7 @@ export default {
         },
         closeVersionDialog(){
             this.addVersionDialog.show = false;
-            this.$refs['addVisionForm'].clearValidate();
+            // this.$refs['addVisionForm'].clearValidate();
         },
         // 新增版本
         addVersion(formName) {

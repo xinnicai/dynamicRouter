@@ -10,15 +10,18 @@
                     </el-row>
                     <el-row style="margin-top:10px">
                         <el-tree class="filter-tree" ref="dicGroupTree"
-                                 :data="regions" :props="{label:'label'}" :filter-node-method="filterDics"  :expand-on-click-node="false" :auto-expand-parent="true" node-key="id" :default-expanded-keys="defaultExpand"
+                                 :data="regions" :props="{label:'label'}" :filter-node-method="filterDics"
+                                 :expand-on-click-node="false" :auto-expand-parent="true" node-key="id"
+                                 :default-expanded-keys="defaultExpand"
                                  @node-click="handleNodeClick">
                                 <span class="span-ellipsis" slot-scope="{ node, data }">
-									 <el-tooltip class="item" effect="dark" :content="node.label" placement="bottom" :open-delay="1000">
-										<span >{{ node.label }}</span>
+									 <el-tooltip class="item" effect="dark" :content="node.label" placement="bottom"
+                                                 :open-delay="1000">
+										<span>{{ node.label }}</span>
 									</el-tooltip>
 								</span>
                         </el-tree>
-                       
+
                     </el-row>
                 </el-card>
 			</el-col>
@@ -27,8 +30,11 @@
                     <el-row>
                         <el-col :span="24">
                             <el-input placeholder="输入名称" style="width: 300px" v-model="queryName"></el-input>
-                            <el-button icon="el-icon-search" type="primary" class="searchbox_button" @click="loadOrgs">搜索</el-button>
-                            <el-button icon="el-icon-plus" type="primary" class="searchbox_button" @click="addList">
+                            <el-button icon="el-icon-search" type="primary" class="searchbox_button" @click="loadOrgs">
+                                搜索
+                            </el-button>
+                            <el-button icon="el-icon-plus" type="primary" class="searchbox_button" @click="addList"
+                                       v-if="hasPermission('organ.add')">
                                 新增项
                             </el-button>
                         </el-col>
@@ -39,6 +45,7 @@
                                 style="width: 100%;margin-bottom: 20px;"
                                 row-key="id"
                                 border
+                                default-expand-all
                                 :tree-props="{children: 'children', hasChildren: 'hasChildren'}">
                             <el-table-column
                                     prop="code"
@@ -60,12 +67,14 @@
                                 <template slot-scope="scope">
                                     <el-button
                                             size="mini"
-                                            @click="handleEdit(scope.$index, scope.row)">编辑
+                                            @click="handleEdit(scope.$index, scope.row)"
+                                            v-if="hasPermission('organ.edit')">编辑
                                     </el-button>
                                     <el-button
                                             size="mini"
                                             type="danger"
-                                            @click="handleDelete(scope.$index, scope.row)">作废
+                                            @click="handleDelete(scope.$index, scope.row)"
+                                            v-if="hasPermission('organ.del')">删除
                                     </el-button>
                                 </template>
                             </el-table-column>
@@ -94,7 +103,7 @@
                         <label class="">组织机构代码</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="newOrg.code"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.code"></el-input>
                     </el-col>
                 </el-col>
                 <el-col :span="8">
@@ -102,7 +111,7 @@
                         <label class="">机构名称</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="newOrg.name"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.name"></el-input>
                     </el-col>
                 </el-col>
                 <el-col :span="8">
@@ -120,7 +129,7 @@
                         <label class="">登记号</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="newOrg.registerNumber"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.registerNumber"></el-input>
                     </el-col>
                 </el-col>
                 <el-col :span="8">
@@ -141,10 +150,17 @@
                         <label class="">机构类型</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-select v-model="newOrg.organType" placeholder="请选择机构类型" style="width:150px">
-                            <el-option v-for="code in organTypes" :label="code.text" :value="code.key"
-                                       :key="code.key"></el-option>
-                        </el-select>
+                        <treeselect v-model="newOrg.organType"
+                                    :clearable="true"
+                                    :searchable="true"
+                                    :disabled="false"
+                                    :options="organTypes"
+                                    :limit="3"
+                                    :max-height="200"
+                                    :placeholder="'请选择机构类型'"
+                                    style="width:150px"
+                                    :noChildrenText="' '"
+                        />
                     </el-col>
                 </el-col>
                 <el-col :span="16">
@@ -152,7 +168,7 @@
                         <label class="">地址</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:250px" v-model="newOrg.address"></el-input>
+                        <el-input autocomplete="off" style="width:250px" v-model="newOrg.address"></el-input>
                     </el-col>
                 </el-col>
             </el-row>
@@ -163,16 +179,16 @@
                     </el-col>
                     <el-col :span="15">
                         <treeselect
-                        :clearable="true"
-                        :searchable="true"
-                        :disabled="false"
-                        :options="regions"
-                        :limit="3"
-                        :max-height="200"
-                        :placeholder="'请选择'"
-                        v-model="newOrg.regionCode"
-                        style="width:150px"
-                        :noChildrenText="' '"
+                                :clearable="true"
+                                :searchable="true"
+                                :disabled="false"
+                                :options="regions"
+                                :limit="3"
+                                :max-height="200"
+                                :placeholder="'请选择'"
+                                v-model="newOrg.regionCode"
+                                style="width:150px"
+                                :noChildrenText="' '"
                         />
                     </el-col>
                 </el-col>
@@ -181,7 +197,7 @@
                         <label class="">联系电话</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="newOrg.telphone"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.telphone"></el-input>
                     </el-col>
                 </el-col>
             </el-row>
@@ -191,7 +207,7 @@
                         <label class="">拼音助记</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="newOrg.pycode"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.pycode"></el-input>
                     </el-col>
                 </el-col>
                 <el-col :span="8">
@@ -199,7 +215,7 @@
                         <label class="">乡镇街道代码</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="newOrg.streetCode"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.streetCode"></el-input>
                     </el-col>
                 </el-col>
                 <el-col :span="8">
@@ -207,7 +223,7 @@
                         <label class="">乡镇街道名称</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="newOrg.streetName"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.streetName"></el-input>
                     </el-col>
                 </el-col>
             </el-row>
@@ -217,7 +233,7 @@
                         <label class="">主办单位</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="newOrg.hostCode"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.hostCode"></el-input>
                     </el-col>
                 </el-col>
                 <el-col :span="8">
@@ -239,6 +255,12 @@
                     </el-col>
                 </el-col>
                 <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">单位网站</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.website"></el-input>
+                    </el-col>
                 </el-col>
             </el-row>
             <el-row :gutter="10" class="dialogLabel">
@@ -258,7 +280,7 @@
                         <label class="">机构第二名称</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="newOrg.otherName"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.otherName"></el-input>
                     </el-col>
                 </el-col>
                 <el-col :span="8">
@@ -266,7 +288,7 @@
                         <label class="">邮政编码</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="newOrg.postCode"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.postCode"></el-input>
                     </el-col>
                 </el-col>
             </el-row>
@@ -287,7 +309,7 @@
                         <label class="">医院介绍</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="newOrg.description"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.description"></el-input>
                     </el-col>
                 </el-col>
                 <el-col :span="8">
@@ -295,36 +317,324 @@
                         <label class="">电子邮箱</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="newOrg.email"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.email"></el-input>
+                    </el-col>
+                </el-col>
+            </el-row>
+            <el-row :gutter="10" class="dialogLabel">
+
+                <!--                <el-col :span="8">-->
+                <!--                    <el-col :span="9">-->
+                <!--                        <label class="">版本</label>-->
+                <!--                    </el-col>-->
+                <!--                    <el-col :span="15">-->
+                <!--                        <el-select v-model="newOrg.version" placeholder="请选择版本" style="width:150px">-->
+                <!--                            <el-option v-for="code in versions" :label="code.description" :value="code.version"-->
+                <!--                                       :key="code.version"></el-option>-->
+                <!--                        </el-select>-->
+                <!--                    </el-col>-->
+                <!--                </el-col>-->
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">排序</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.orderNum"></el-input>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">其他代码</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.otherCode"></el-input>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">业务唯一标识</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.businessCode"></el-input>
                     </el-col>
                 </el-col>
             </el-row>
             <el-row :gutter="10" class="dialogLabel">
                 <el-col :span="8">
                     <el-col :span="9">
-                        <label class="">单位网站</label>
+                        <label class="">实有床位</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="newOrg.website"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.bedNum"></el-input>
                     </el-col>
                 </el-col>
-<!--                <el-col :span="8">-->
-<!--                    <el-col :span="9">-->
-<!--                        <label class="">版本</label>-->
-<!--                    </el-col>-->
-<!--                    <el-col :span="15">-->
-<!--                        <el-select v-model="newOrg.version" placeholder="请选择版本" style="width:150px">-->
-<!--                            <el-option v-for="code in versions" :label="code.description" :value="code.version"-->
-<!--                                       :key="code.version"></el-option>-->
-<!--                        </el-select>-->
-<!--                    </el-col>-->
-<!--                </el-col>-->
                 <el-col :span="8">
                     <el-col :span="9">
-                        <label class="">排序</label>
+                        <label class="">建制乡镇卫生院</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="newOrg.orderNum"></el-input>
+                        <el-select v-model="newOrg.townshipHospital" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in trueOrFalse" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">村委会代码</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.villageCode"></el-input>
+                    </el-col>
+                </el-col>
+            </el-row>
+            <el-row :gutter="10" class="dialogLabel">
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">医院等级(级)</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="newOrg.levelGrade" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in levelGrades" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">医院等级(等)</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="newOrg.levelClass" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in levelClasses" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">母婴保健技术服务执业许可证</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="newOrg.muying" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in trueOrFalse" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+            </el-row>
+            <el-row :gutter="10" class="dialogLabel">
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">最近一次医院等级批准文号</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.lastApproveCode"></el-input>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">最近一次医院等级批准时间</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-date-picker style="width:150px" v-model="newOrg.lastApproveTime" type="date"
+                                        value-format="yyyy-MM-dd HH:mm:ss"
+                                        placeholder="选择日期">
+                        </el-date-picker>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">机构变动情况</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="newOrg.status" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in statusList" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+            </el-row>
+            <el-row :gutter="10" class="dialogLabel">
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">经济类型</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="newOrg.economicType" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in economicTypes" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">是否填报出院病人表</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="newOrg.tianbaoCybrb" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in trueOrFalse" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">是否代报诊所</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="newOrg.daibaoZs" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in trueOrFalse" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+            </el-row>
+            <el-row :gutter="10" class="dialogLabel">
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">诊所所属代报机构</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.daibaoZsOrg"></el-input>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">是否代报村卫生室</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="newOrg.daibaoWss" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in trueOrFalse" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">村卫生室所属代报机构</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.daibaoWssOrg"></el-input>
+                    </el-col>
+                </el-col>
+            </el-row>
+            <el-row :gutter="10" class="dialogLabel">
+                    <el-col :span="8">
+                        <el-col :span="9">
+                            <label class="">注册资金(万元)</label>
+                        </el-col>
+                        <el-col :span="15">
+                            <el-input autocomplete="off" style="width:150px" v-model="newOrg.registeredCapital"></el-input>
+                        </el-col>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-col :span="9">
+                            <label class="">负责人</label>
+                        </el-col>
+                        <el-col :span="15">
+                            <el-input autocomplete="off" style="width:150px" v-model="newOrg.principal"></el-input>
+                        </el-col>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-col :span="9">
+                            <label class="">是否分支机构</label>
+                        </el-col>
+                        <el-col :span="15">
+                            <el-select v-model="newOrg.subOrgan" placeholder="请选择" style="width:150px">
+                                <el-option v-for="code in trueOrFalse" :label="code.text" :value="code.key"
+                                           :key="code.key"></el-option>
+                            </el-select>
+                        </el-col>
+                    </el-col>
+            </el-row>
+            <el-row :gutter="10" class="dialogLabel">
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">分支机构所属上级机构</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.businessParentCode"></el-input>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">批准文号/注册号</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.approveCode"></el-input>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">登记批准机构</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.approvedOrg"></el-input>
+                    </el-col>
+                </el-col>
+            </el-row>
+            <el-row :gutter="10" class="dialogLabel">
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">办证日期</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-date-picker style="width:150px" v-model="newOrg.applicationDate" type="date"
+                                        value-format="yyyy-MM-dd HH:mm:ss"
+                                        placeholder="选择日期">
+                        </el-date-picker>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">经办人</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.operator"></el-input>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">社会信用代码</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="newOrg.socialCreditCode"></el-input>
+                    </el-col>
+                </el-col>
+            </el-row>
+            <el-row :gutter="10" class="dialogLabel">
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">是否取得中医诊所备案证</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="newOrg.zyzsbaz" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in trueOrFalse" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">是否助产机构</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="newOrg.zcjg" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in trueOrFalse" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">是否独立机构</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="newOrg.dljg" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in trueOrFalse" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
                     </el-col>
                 </el-col>
             </el-row>
@@ -341,7 +651,7 @@
                         <label class="">组织机构代码</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" :disabled="true"
+                        <el-input autocomplete="off" style="width:150px" :disabled="true"
                                   v-model="editOrg.code"></el-input>
                     </el-col>
                 </el-col>
@@ -350,7 +660,7 @@
                         <label class="">机构名称</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="editOrg.name"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.name"></el-input>
                     </el-col>
                 </el-col>
                 <el-col :span="8">
@@ -368,7 +678,7 @@
                         <label class="">登记号</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="editOrg.registerNumber"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.registerNumber"></el-input>
                     </el-col>
                 </el-col>
                 <el-col :span="8">
@@ -391,10 +701,17 @@
                         <label class="">机构类型</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-select v-model="editOrg.organType" placeholder="请选择机构类型" style="width:150px">
-                            <el-option v-for="code in organTypes" :label="code.text" :value="code.key"
-                                       :key="code.key"></el-option>
-                        </el-select>
+                        <treeselect v-model="editOrg.organType"
+                                    :clearable="true"
+                                    :searchable="true"
+                                    :disabled="false"
+                                    :options="organTypes"
+                                    :limit="3"
+                                    :max-height="200"
+                                    :placeholder="'请选择机构类型'"
+                                    style="width:150px"
+                                    :noChildrenText="' '"
+                        />
                     </el-col>
                 </el-col>
                 <el-col :span="16">
@@ -402,7 +719,7 @@
                         <label class="">地址</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:250px" v-model="editOrg.address"></el-input>
+                        <el-input autocomplete="off" style="width:250px" v-model="editOrg.address"></el-input>
                     </el-col>
                 </el-col>
             </el-row>
@@ -413,15 +730,15 @@
                     </el-col>
                     <el-col :span="15">
                         <treeselect v-model="editOrg.regionCode"
-                                :clearable="true"
-                                :searchable="true"
-                                :disabled="false"
-                                :options="regions"
-                                :limit="3"
-                                :max-height="200"
-                                :placeholder="'请选择'"
-                                style="width:150px"
-                                :noChildrenText="' '"
+                                    :clearable="true"
+                                    :searchable="true"
+                                    :disabled="false"
+                                    :options="regions"
+                                    :limit="3"
+                                    :max-height="200"
+                                    :placeholder="'请选择'"
+                                    style="width:150px"
+                                    :noChildrenText="' '"
                         />
                     </el-col>
                 </el-col>
@@ -430,7 +747,7 @@
                         <label class="">联系电话</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="editOrg.telphone"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.telphone"></el-input>
                     </el-col>
                 </el-col>
             </el-row>
@@ -440,7 +757,7 @@
                         <label class="">拼音助记</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" :disabled="true"
+                        <el-input autocomplete="off" style="width:150px" :disabled="true"
                                   v-model="editOrg.pycode"></el-input>
                     </el-col>
                 </el-col>
@@ -449,7 +766,7 @@
                         <label class="">乡镇街道代码</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="editOrg.streetCode"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.streetCode"></el-input>
                     </el-col>
                 </el-col>
                 <el-col :span="8">
@@ -457,7 +774,7 @@
                         <label class="">乡镇街道名称</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="editOrg.streetName"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.streetName"></el-input>
                     </el-col>
                 </el-col>
             </el-row>
@@ -467,7 +784,7 @@
                         <label class="">主办单位</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="editOrg.hostCode"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.hostCode"></el-input>
                     </el-col>
                 </el-col>
                 <el-col :span="8">
@@ -489,6 +806,12 @@
                     </el-col>
                 </el-col>
                 <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">单位网站</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.website"></el-input>
+                    </el-col>
                 </el-col>
             </el-row>
             <el-row :gutter="10" class="dialogLabel">
@@ -508,7 +831,7 @@
                         <label class="">机构第二名称</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="editOrg.otherName"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.otherName"></el-input>
                     </el-col>
                 </el-col>
                 <el-col :span="8">
@@ -516,7 +839,7 @@
                         <label class="">邮政编码</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="editOrg.postCode"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.postCode"></el-input>
                     </el-col>
                 </el-col>
             </el-row>
@@ -537,7 +860,7 @@
                         <label class="">医院介绍</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="editOrg.description"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.description"></el-input>
                     </el-col>
                 </el-col>
                 <el-col :span="8">
@@ -545,36 +868,324 @@
                         <label class="">电子邮箱</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="editOrg.email"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.email"></el-input>
+                    </el-col>
+                </el-col>
+            </el-row>
+            <el-row :gutter="10" class="dialogLabel">
+
+                <!--                <el-col :span="8">-->
+                <!--                    <el-col :span="9">-->
+                <!--                        <label class="">版本</label>-->
+                <!--                    </el-col>-->
+                <!--                    <el-col :span="15">-->
+                <!--                        <el-select disabled v-model="editOrg.version" placeholder="请选择版本" style="width:150px">-->
+                <!--                            <el-option v-for="code in versions" :label="code.description" :value="code.version"-->
+                <!--                                       :key="code.version"></el-option>-->
+                <!--                        </el-select>-->
+                <!--                    </el-col>-->
+                <!--                </el-col>-->
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">排序</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.orderNum"></el-input>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">其他代码</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.otherCode"></el-input>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">业务唯一标识</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.businessCode"></el-input>
                     </el-col>
                 </el-col>
             </el-row>
             <el-row :gutter="10" class="dialogLabel">
                 <el-col :span="8">
                     <el-col :span="9">
-                        <label class="">单位网站</label>
+                        <label class="">实有床位</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="editOrg.website"></el-input>
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.bedNum"></el-input>
                     </el-col>
                 </el-col>
-<!--                <el-col :span="8">-->
-<!--                    <el-col :span="9">-->
-<!--                        <label class="">版本</label>-->
-<!--                    </el-col>-->
-<!--                    <el-col :span="15">-->
-<!--                        <el-select disabled v-model="editOrg.version" placeholder="请选择版本" style="width:150px">-->
-<!--                            <el-option v-for="code in versions" :label="code.description" :value="code.version"-->
-<!--                                       :key="code.version"></el-option>-->
-<!--                        </el-select>-->
-<!--                    </el-col>-->
-<!--                </el-col>-->
                 <el-col :span="8">
                     <el-col :span="9">
-                        <label class="">排序</label>
+                        <label class="">建制乡镇卫生院</label>
                     </el-col>
                     <el-col :span="15">
-                        <el-input auto-complete="off" style="width:150px" v-model="editOrg.orderNum"></el-input>
+                        <el-select v-model="editOrg.townshipHospital" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in trueOrFalse" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">村委会代码</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.villageCode"></el-input>
+                    </el-col>
+                </el-col>
+            </el-row>
+            <el-row :gutter="10" class="dialogLabel">
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">医院等级(级)</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="editOrg.levelGrade" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in levelGrades" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">医院等级(等)</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="editOrg.levelClass" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in levelClasses" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">母婴保健技术服务执业许可证</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="editOrg.muying" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in trueOrFalse" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+            </el-row>
+            <el-row :gutter="10" class="dialogLabel">
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">最近一次医院等级批准文号</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.lastApproveCode"></el-input>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">最近一次医院等级批准时间</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-date-picker style="width:150px" v-model="editOrg.lastApproveTime" type="date"
+                                        value-format="yyyy-MM-dd HH:mm:ss"
+                                        placeholder="选择日期">
+                        </el-date-picker>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">机构变动情况</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="editOrg.status" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in statusList" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+            </el-row>
+            <el-row :gutter="10" class="dialogLabel">
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">经济类型</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="editOrg.economicType" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in economicTypes" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">是否填报出院病人表</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="editOrg.tianbaoCybrb" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in trueOrFalse" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">是否代报诊所</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="editOrg.daibaoZs" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in trueOrFalse" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+            </el-row>
+            <el-row :gutter="10" class="dialogLabel">
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">诊所所属代报机构</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.daibaoZsOrg"></el-input>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">是否代报村卫生室</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="editOrg.daibaoWss" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in trueOrFalse" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">村卫生室所属代报机构</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.daibaoWssOrg"></el-input>
+                    </el-col>
+                </el-col>
+            </el-row>
+            <el-row :gutter="10" class="dialogLabel">
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">注册资金(万元)</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.registeredCapital"></el-input>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">负责人</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.principal"></el-input>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">是否分支机构</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="editOrg.subOrgan" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in trueOrFalse" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+            </el-row>
+            <el-row :gutter="10" class="dialogLabel">
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">分支机构所属上级机构</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.businessParentCode"></el-input>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">批准文号/注册号</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.approveCode"></el-input>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">登记批准机构</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.approvedOrg"></el-input>
+                    </el-col>
+                </el-col>
+            </el-row>
+            <el-row :gutter="10" class="dialogLabel">
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">办证日期</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-date-picker style="width:150px" v-model="editOrg.applicationDate" type="date"
+                                        value-format="yyyy-MM-dd HH:mm:ss"
+                                        placeholder="选择日期">
+                        </el-date-picker>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">经办人</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.operator"></el-input>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">社会信用代码</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-input autocomplete="off" style="width:150px" v-model="editOrg.socialCreditCode"></el-input>
+                    </el-col>
+                </el-col>
+            </el-row>
+            <el-row :gutter="10" class="dialogLabel">
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">是否取得中医诊所备案证</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="editOrg.zyzsbaz" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in trueOrFalse" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">是否助产机构</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="editOrg.zcjg" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in trueOrFalse" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-col>
+                <el-col :span="8">
+                    <el-col :span="9">
+                        <label class="">是否独立机构</label>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-select v-model="editOrg.dljg" placeholder="请选择" style="width:150px">
+                            <el-option v-for="code in trueOrFalse" :label="code.text" :value="code.key"
+                                       :key="code.key"></el-option>
+                        </el-select>
                     </el-col>
                 </el-col>
             </el-row>
@@ -627,7 +1238,7 @@
                     </el-tab-pane>
                 </el-tabs>
             </el-row>
-            <div slot="footer"  class="dialog_button">
+            <div slot="footer" class="dialog_button">
                 <el-button @click="cancelEditOrg()">取 消</el-button>
                 <el-button type="primary" @click="saveEdit()">提 交</el-button>
             </div>
@@ -641,9 +1252,9 @@
     import axios from 'axios'
 	export default {
         // components: { 'tree-select':httpVueLoader('./components/treeSelect.vue') },
-        data: function () {
+       data: function () {
             return {
-               // 父分组ID
+                // 父分组ID
                 parentId: null,
                 // 显示已作废字典
                 showVoidedDic: false,
@@ -682,9 +1293,14 @@
                 subCodes: [], //隶属关系
                 parentOrgs: [], //上级部门
                 organTypes: [], //机构类型
+                levelClasses: [], //医院等级（等）
+                levelGrades: [], //医院等级（级）
+                statusList: [], //机构变动情况
+                economicTypes: [], //经济类型
                 queryName: null,
                 value: null,
-                defaultExpand:[]
+                defaultExpand: [],
+                trueOrFalse: [{'key': false, 'text': '否'}, {'key': true, 'text': '是'}]
             }
         },
         methods: {
@@ -695,9 +1311,9 @@
             // 显示新增项弹出框
             addList() {
                 this.newOrg = {
-                    version:this.version
+                    version: this.version
                 };
-                if(!!this.regionCode){
+                if (!!this.regionCode) {
                     this.newOrg.regionCode = this.regionCode;
                 }
 
@@ -707,16 +1323,16 @@
             cancelNewOrg() {
                 this.dialogForm2Visible = false;
                 this.newOrg = {
-                    version:this.version
+                    version: this.version
                 };
             },
             // 编辑项
             handleEdit(index, row) {
                 this.editOrg = row;
                 this.loadOrgTree();
-                this.parentOrgsTable= [];
-                this.subOrgsTable= [];
-                this.officesTable=[];
+                this.parentOrgsTable = [];
+                this.subOrgsTable = [];
+                this.officesTable = [];
                 this.activeName = 'first';
                 this.loadParentOrgsTable();
                 this.dialogFormVisible = true
@@ -762,7 +1378,7 @@
             },
             loadRegions() {
                 axios({
-                    url: this.baseUrl+'region/tree',
+                    url:this.baseUrl+ 'region/tree',
                     method: 'get',
                     headers: {},
                     params: {
@@ -772,7 +1388,7 @@
                     let data = res.data;
                     if (data.success) {
                         this.regions.splice(0, this.regions.length);
-                        this.regions=this.convertData(data.content,'code','name')
+                        this.regions = this.convertData(data.content, 'code', 'name')
                         this.defaultExpand.push(this.regions[0].children[0].id)
                     }
                 })
@@ -780,7 +1396,7 @@
             // 加载字典版本
             loadVersions() {
                 axios({
-                    url: this.baseUrl+'version',
+                    url:this.baseUrl+ 'version',
                     method: 'get',
                     headers: {},
                     params: {
@@ -808,7 +1424,7 @@
             },
             loadOrgs() {
                 axios({
-                    url: this.baseUrl+'organization',
+                    url:this.baseUrl+ 'organization',
                     method: 'get',
                     headers: {},
                     params: {
@@ -834,7 +1450,7 @@
             },
             saveOrg() {
                 axios({
-                    url: this.baseUrl+'organization',
+                    url:this.baseUrl+ 'organization',
                     method: 'post',
                     headers: {},
                     data: this.newOrg
@@ -849,13 +1465,13 @@
                             type: 'success'
                         });
                     } else {
-                        if(!!data.errMsg){
+                        if (!!data.errMsg) {
                             this.$notify.error({
                                 title: '机构注册-创建',
-                                message: '机构注册失败原因'+data.errMsg,
+                                message: '机构注册失败原因' + data.errMsg,
                                 duration: 0
                             });
-                        }else{
+                        } else {
                             this.$notify.error({
                                 title: '机构注册-创建',
                                 message: '机构注册失败!',
@@ -866,7 +1482,7 @@
                 })
             }, saveEdit() {
                 axios({
-                    url: this.baseUrl+'organization',
+                    url:this.baseUrl+ 'organization',
                     method: 'put',
                     headers: {},
                     data: this.editOrg
@@ -881,13 +1497,13 @@
                             type: 'success'
                         });
                     } else {
-                         if(!!data.errMsg){
+                        if (!!data.errMsg) {
                             this.$notify.error({
                                 title: '机构注册-编辑',
-                                message: '编辑失败原因'+data.errMsg,
+                                message: '编辑失败原因' + data.errMsg,
                                 duration: 0
                             });
-                        }else{
+                        } else {
                             this.$notify.error({
                                 title: '机构注册-编辑',
                                 message: '编辑失败!',
@@ -899,25 +1515,25 @@
             },
             loadOrgTree() {
                 axios({
-                    url: this.baseUrl+'organization/' + this.version + '/tree',
+                    url:this.baseUrl+ 'organization/' + this.version + '/tree',
                     method: 'get',
                     headers: {}
                 }).then(res => {
                     let data = res.data;
                     if (data.success) {
                         this.parentOrgs.splice(0, this.parentOrgs.length);
-                        this.parentOrgs=this.convertData(data.content,'code','name')
+                        this.parentOrgs = this.convertData(data.content, 'code', 'name')
                     }
                 })
             },
             loadDics(dicCode, dics) {
                 axios({
-                    url: this.baseUrl+'dicItem/tree',
+                    url:this.baseUrl+ 'dicItem/tree',
                     method: 'get',
                     headers: {},
                     params: {
                         dicCode: dicCode,
-                        active:true
+                        active: true
                     }
                 }).then(res => {
                     let data = res.data;
@@ -926,9 +1542,26 @@
                         data.content.forEach(g => dics.push(g));
                     }
                 })
+            },
+            getOrganizType() {
+                axios({
+                    url:this.baseUrl+ 'dicItem/tree',
+                    method: 'get',
+                    headers: {},
+                    params: {
+                        dicCode: 'organizType',
+                        active: true
+                    }
+                }).then(res => {
+                    let data = res.data;
+                    if (data.success) {
+                        this.organTypes.splice(0, this.organTypes.length);
+                        this.organTypes = this.convertData(data.content, 'key', 'text')
+                    }
+                })
             }, loadParentOrgsTable() {//加载上级机构
                 axios({
-                    url: this.baseUrl+'organization/' + this.editOrg.id + '/parent',
+                    url:this.baseUrl+ 'organization/' + this.editOrg.id + '/parent',
                     method: 'get',
                     headers: {}
                 }).then(res => {
@@ -940,7 +1573,7 @@
                 })
             }, loadSubOrgsTable() {//加载下级机构
                 axios({
-                    url: this.baseUrl+'organization',
+                    url:this.baseUrl+ 'organization',
                     method: 'get',
                     headers: {},
                     params: {
@@ -960,7 +1593,7 @@
                 })
             }, loadOfficesTable() {//加载科室
                 axios({
-                    url: this.baseUrl+'office',
+                    url:this.baseUrl+ 'office',
                     method: 'get',
                     headers: {},
                     params: {
@@ -979,34 +1612,68 @@
                     }
                 })
             },
-             initChecked () {
+            handleDelete(index, row) {
+                this.$confirm('是否删除【' + row.name + '】?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.deleteData(row.id);
+                }).catch(() => {
+
+                });
+            },
+            deleteData(id) {//删除
+                axios({
+                    url:this.baseUrl+ 'organization/' + id,
+                    method: 'delete',
+                    headers: {}
+                }).then(res => {
+                    let data = res.data;
+                    if (data.success) {
+                        this.loadOrgs();
+                        this.$notify({
+                            title: '机构注册-删除',
+                            message: '删除成功',
+                            type: 'success'
+                        });
+                    } else {
+                        this.$notify.error({
+                            title: '机构注册-删除',
+                            message: !!data.errMsg ? '失败原因:' + data.errMsg : "删除失败",
+                            duration: 0
+                        });
+                    }
+                })
+            },
+            initChecked() {
                 this.defaultCheckedKeys = [1006, 1007];
             },
-            popoverHide (checkedIds, checkedData) {
+            popoverHide(checkedIds, checkedData) {
                 console.log(checkedIds);
                 console.log(checkedData);
             },
-            convertData(listData,id,label){
-                let nodeData=[]
-                   for(let i=0;i< listData.length;i++){
-                        if(listData[i].children==0){
-                            nodeData.push( {
-                                label:listData[i][label],
-                                id:listData[i][id]
-                            })
-                        }else{
-                            nodeData.push({
-                                    label:listData[i][label],
-                                    id:listData[i][id],
-                                    children:this.convertData(listData[i].children,id,label)
-                                })
-                        }
-                   }
-                   return nodeData
+            convertData(listData, id, label) {
+                let nodeData = [];
+                for (let i = 0; i < listData.length; i++) {
+                    if (!!listData[i].children) {
+                        nodeData.push({
+                            label: listData[i][label],
+                            id: listData[i][id],
+                            children: this.convertData(listData[i].children, id, label)
+                        })
+                    } else {
+                        nodeData.push({
+                            label: listData[i][label],
+                            id: listData[i][id]
+                        })
+                    }
+                }
+                return nodeData
             }
-                
+
         },
-         mounted () {
+        mounted() {
             // 组建中增加了监听数据变化的，
             // 此处初始化defaultCheckedKeys的值，有效果
 
@@ -1017,10 +1684,14 @@
             // 初始化参数
             // this.loadVersions();
             // if (this.version) {
-                this.loadRegions();
-                this.loadDics('classifyCode', this.classifyCodes);//机构分类
-                this.loadDics('subCode', this.subCodes);//隶属关系
-                this.loadDics('organizType', this.organTypes);//机构类型
+            this.loadRegions();
+            this.loadDics('classifyCode', this.classifyCodes);//机构分类
+            this.loadDics('subCode', this.subCodes);//隶属关系
+            this.getOrganizType();//机构类型
+            this.loadDics('hospital_level_class', this.levelClasses);//医院等级（等）
+            this.loadDics('CC06.02.001.21', this.levelGrades);//医院等级（级）
+            this.loadDics('organ_status', this.statusList);//机构变动情况
+            this.loadDics('GB.T12402', this.economicTypes);//经济类型
             // }
 
         },
@@ -1031,7 +1702,7 @@
                 // this.loadOrgs();
                 this.loadDics('classifyCode', this.classifyCodes);//机构分类
                 this.loadDics('subCode', this.subCodes);//隶属关系
-                this.loadDics('organizType', this.organTypes);//机构类型
+                this.getOrganizType();//机构类型
             },
             // 字典（组）名称
             groupOrDicName: function (val) {
@@ -1049,24 +1720,37 @@
         line-height: 35px
     }
 
-    .organPage{
-        padding:10px;
-		margin-top:10px;
+    .organPage {
+        padding: 10px;
+        margin-top: 10px;
     }
-    .card_height{
-        min-height: calc(100vh - 110px);
+
+    .card_height {
+        min-height: calc(100vh - 115px);
+        max-height: calc(100vh - 115px);
+        overflow-x: hidden;
+        overflow-y: scroll;
     }
-    .modal_tab .el-tabs__content{
+
+    .modal_tab .el-tabs__content {
         top: 0px;
     }
-    .modal_tab  .el-tabs__nav-wrap {
+
+    .modal_tab .el-tabs__nav-wrap {
         margin-top: 0px;
     }
-     .modal_tab  .el-tabs__content {
+
+    .modal_tab .el-tabs__content {
         height: 100%;
     }
-    .modal_tab .el-tabs__item.is-active{
+
+    .modal_tab .el-tabs__item.is-active {
         color: #409EFF !important;
+    }
+    .el-tree {
+        max-height: calc(100vh - 195px);
+        overflow-x: auto;
+        overflow-y: auto;
     }
 </style>
 

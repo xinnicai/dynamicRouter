@@ -1,6 +1,6 @@
 <template>
     <div class="powerPage">
-        <el-card class="box-card card_height">
+         <el-card class="box-card card_height">
             <el-row>
                 <el-col :span="24">
                     <label>名称：</label>
@@ -9,7 +9,7 @@
 <!--                    <el-input placeholder="输入名称" style="width: 200px"></el-input>-->
                     <el-button icon="el-icon-search" type="primary" @click="getTableData">搜索</el-button>
                     <el-button icon="el-icon-plus" type="primary" style="margin-left: 10px"
-                               @click="dialogForm2Visible=true">
+                               @click="dialogForm2Visible=true" v-if="hasPermission('power.add')">
                         新增项
                     </el-button>
                 </el-col>
@@ -19,7 +19,8 @@
                         :data="tableData"
                         style="width: 100%;margin-bottom: 20px;"
                         row-key="id"
-                        border>
+                        border
+                        default-expand-all>
                     <el-table-column
                             prop="text"
                             label="权限名称"
@@ -57,12 +58,12 @@
                         <template slot-scope="scope">
                             <el-button
                                     size="mini"
-                                    @click="handleUpdateData(scope.row)" >编辑
+                                    @click="handleUpdateData(scope.row)" v-if="hasPermission('power.edit')">编辑
                             </el-button>
                             <el-button
                                     size="mini"
                                     type="danger"
-                                    @click="handleDelete(scope.row)">删除
+                                    @click="handleDelete(scope.row)" v-if="hasPermission('power.del')">删除
                             </el-button>
                         </template>
                     </el-table-column>
@@ -102,9 +103,25 @@
                 </el-form-item>
                 <el-form-item label="资源等级" v-if="newOrg.type==='A'">
                     <el-select v-model="newOrg.resource_level" placeholder="请选择" @change="getParents(newOrg)">
-                        <el-option label="一级" value="1"></el-option>
-                        <el-option label="二级" value="2"></el-option>
+                        <el-option v-for="(item,index) in levelOptions" :key="index" :value="item.value" :label="item.label"></el-option>
                     </el-select>
+                    <div class="el-form-item__error" v-if="newOrg.levelErrSpan==true"
+                            style="margin-left:8px;position: relative;">
+                        <span>{{newOrg.levelErrInfo}}</span>
+                    </div>
+                </el-form-item>
+                <el-form-item label="选择图标" v-if="newOrg.type==='A'&&newOrg.resource_level===1">
+                    <div class="iconList" style="height：150px;overflow:auto">
+                        <ul class="icon-list">
+                            <el-radio-group v-model="newOrg.icon">
+                                <li v-for="(item,index) in iconList" :key='index'>
+                                <span>
+                                    <el-radio :label=item><i :class=item></i></el-radio>
+                                </span>
+                                </li>
+                            </el-radio-group>
+                        </ul>
+                    </div>
                 </el-form-item>
                 <el-form-item label="资源URI" v-if="newOrg.type!=='A'">
                     <el-input v-model="newOrg.uri"></el-input>
@@ -119,7 +136,7 @@
                         </el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="上级资源">
+                <el-form-item label="上级资源" v-if="newOrg.resource_level!==1||newOrg.type!=='A'">
                     <treeselect v-model="newOrg.parent_code"
                                 :clearable="true"
                                 :searchable="true"
@@ -128,7 +145,7 @@
                                 :limit="3"
                                 :max-height="200"
                                 :placeholder="'请选择上级资源'"
-                                style="width:100%"
+                                style="width:100%;height:40px"
                                 :noChildrenText="' '"
                                 @input="checkParentCode('add')"
                     />
@@ -137,7 +154,7 @@
                     <el-input-number v-model="newOrg.order_num" controls-position="right" :min="1" :max="99999999"
                                      style="width:100%"></el-input-number>
                     <div class="el-form-item__error" v-if="newOrg.parent_code_errSpan==true"
-                         style="margin-left:8px;position: relative;margin-top:-60px;">
+                         style="margin-left:8px;position: relative;margin-top:-50px;">
                         {{newOrg.parent_code_errInfo}}
                     </div>
                 </el-form-item>
@@ -196,9 +213,25 @@
                 </el-form-item>
                 <el-form-item label="资源等级" v-if="updateOrg.type==='A'">
                     <el-select v-model="updateOrg.resource_level" placeholder="请选择" @change="getParents(updateOrg)">
-                        <el-option label="一级" value="1"></el-option>
-                        <el-option label="二级" value="2"></el-option>
+                        <el-option v-for="(item,index) in levelOptions" :key="index" :value="item.value" :label="item.label"></el-option>
                     </el-select>
+                     <div class="el-form-item__error" v-if="updateOrg.levelErrSpan==true"
+                            style="margin-left:8px;position: relative;">
+                        <span>{{updateOrg.levelErrInfo}}</span>
+                    </div>
+                </el-form-item>
+                <el-form-item label="选择图标" v-if="updateOrg.type==='A'&&updateOrg.resource_level===1">
+                    <div class="iconList" style="height：150px;overflow:auto">
+                            <ul class="icon-list">
+                                <el-radio-group v-model="updateOrg.icon">
+                                    <li v-for="(item,index) in iconList" :key='index'>
+                                    <span>
+                                        <el-radio :label=item><i :class=item></i></el-radio>
+                                    </span>
+                                    </li>
+                                </el-radio-group>
+                            </ul>
+                        </div>
                 </el-form-item>
                 <el-form-item label="资源URI" v-if="updateOrg.type!=='A'">
                     <el-input v-model="updateOrg.uri"></el-input>
@@ -213,7 +246,7 @@
                         </el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="上级资源">
+                <el-form-item label="上级资源" v-if="updateOrg.resource_level!==1||updateOrg.type!=='A'">
                     <treeselect v-model="updateOrg.parent_code"
                                 :clearable="true"
                                 :searchable="true"
@@ -222,16 +255,16 @@
                                 :limit="3"
                                 :max-height="200"
                                 :placeholder="'请选择上级资源'"
-                                style="width:100%"
+                                style="width:100%;height:40px"
                                 :noChildrenText="' '"
-                                @input="checkParentCode('update')"
+                                @input="checkParentCode('update')" 
                     />
                 </el-form-item>
                 <el-form-item label="排列序号">
                     <el-input-number v-model="updateOrg.order_num" controls-position="right" :min="1" :max="99999999"
                                      style="width:100%"></el-input-number>
                     <div class="el-form-item__error" v-if="updateOrg.parent_code_errSpan==true"
-                         style="margin-left:8px;position: relative;margin-top:-60px;">
+                         style="margin-left:8px;position: relative;margin-top:-50px;">
                         {{updateOrg.parent_code_errInfo}}
                     </div>
                 </el-form-item>
@@ -275,11 +308,11 @@
 <script>
     import axios from 'axios'
 	export default {
-        data: function () {
+         data: function () {
             // 验证code唯一
             var validatorCode = (rule, value, callback) => {
                 axios({
-                    url: this.baseUrl+'resource/isExist',
+                    url:this.baseUrl+ 'resource/isExist',
                     method: 'post',
                     data: {
                         code: value,
@@ -326,13 +359,14 @@
                     ],
                     type: [
                         { required: true, message: '请选择资源类型', trigger: 'change' }
-                    ]
+                    ],
                 },
                 // 新增数据窗口
                 dialogForm2Visible: false,
                 // 新增项数据
                 newOrg: {
                     scope_tag: 'ORGAN',
+                    icon:'el-icon-search',
                     roleList: [
                         {
                             code: '',
@@ -344,8 +378,10 @@
                             errValueInfo: ''
                         }
                     ],
-                    parent_code_errSpan: true,
-                    parent_code_errInfo: ''
+                    parent_code_errSpan: false,
+                    parent_code_errInfo: '',
+                    levelErrSpan:false,
+                    levelErrInfo:''
                 },
                 // 编辑窗口
                 dialogFormVisible: false,
@@ -361,18 +397,18 @@
                             errValueInfo: ''
                         }
                     ],
-                    parent_code_errSpan: true,
-                    parent_code_errInfo: ''
+                    parent_code_errSpan: false,
+                    parent_code_errInfo: '',
+                    levelErrSpan:false,
+                    levelErrInfo:'',
+                    icon:''
                 },
                 levelOptions: [{
-                    value: '1',
+                    value: 1,
                     label: '一级'
                 }, {
-                    value: '2',
+                    value: 2,
                     label: '二级'
-                }, {
-                    value: '3',
-                    label: '三级'
                 }],
                 typeOptions: [],
                 tagOptions: [{
@@ -380,7 +416,13 @@
                     label: '机构'
                 },],
                 parentOptions: [],
-
+                // 图标库
+                iconList:['el-icon-s-home','el-icon-menu','el-icon-notebook-2','el-icon-s-check','el-icon-s-tools',
+                'el-icon-s-platform','el-icon-s-claim','el-icon-star-on','el-icon-s-help','el-icon-s-promotion',
+                'el-icon-s-flag','el-icon-s-order','el-icon-s-open','el-icon-s-management','el-icon-s-marketing',
+                'el-icon-s-data','el-icon-s-opportunity','el-icon-share','el-icon-s-custom','el-icon-date',
+                'el-icon-folder-opened','el-icon-takeaway-box','el-icon-pie-chart'
+                ,'el-icon-office-building','el-icon-link','el-icon-connection','el-icon-set-up','el-icon-location']
             }
         },
         methods: {
@@ -479,6 +521,7 @@
                 }
             },
             checkRoleList(modalFlag) {
+                
                 let obj
                 if (modalFlag == "add") {
                     obj = this.newOrg
@@ -521,28 +564,53 @@
                 } else {
                     obj = this.updateOrg
                 }
-                if (obj.resource_level !== '1' && obj.parent_code === "" || obj.resource_level !== '1' && obj.parent_code === undefined) {
+                if (obj.resource_level === 2 && !obj.parent_code) {
                     obj.parent_code_errSpan = true;
                     obj.parent_code_errInfo = "请选择上级资源"
                     checkHasParentCode = false
-                } else {
+                }else if(obj.resource_level===1){
+                    obj.parent_code='';
+                    obj.parent_code_errSpan = false;
+                    obj.parent_code_errInfo = "";
+                    checkHasParentCode = true;
+                }else {
                     obj.parent_code_errSpan = false;
                     obj.parent_code_errInfo = ""
                     checkHasParentCode = true
                 }
                 return checkHasParentCode
             },
+            // 验证资源等级
+            checkLevel(flag){
+                let checkHasLevel, obj
+                if (flag == "add") {
+                    obj = this.newOrg
+                } else {
+                    obj = this.updateOrg
+                }
+                if(obj.type==='A'&&!obj.resource_level){
+                    checkHasLevel=false;
+                    obj.levelErrSpan=true;
+                    obj.levelErrInfo="请选资源等级"
+                }else{
+                    checkHasLevel=true;
+                    obj.levelErrSpan=false;
+                    obj.levelErrInfo=""
+                }
+                return checkHasLevel
+            },
             saveOrg(flag) {
                 let obj, postData, method
                 let checkRoleLi1st = this.checkRoleList(flag);
+                let checkLevel=this.checkLevel(flag);
                 let checkParentCode = this.checkParentCode(flag);
                 this.convertPostData(flag)
                 if (flag == "add") {
                     obj = this.newOrg
                     if (obj.type === 'A') {
-                        obj.permissions = [],
-                            obj.uri = "",
-                            obj.scope_tag = ""
+                        obj.permissions = [];
+                        obj.uri = "";
+                        obj.scope_tag = "";  
                     }
                     method = 'post',
                         postData = {
@@ -550,19 +618,20 @@
                             parentCode: obj.parent_code,
                             permissions: obj.permissions,
                             scopeTag: obj.scope_tag,
-                            sourceLevel: obj.source_level,
+                            sourceLevel: obj.resource_level,
                             system: this.systemCode,
                             text: obj.name,
                             type: obj.type,
                             uri: obj.uri,
-                            orderNum: obj.order_num
+                            orderNum: obj.order_num,
+                            icon:obj.icon
                         }
                 } else if (flag === 'update') {
                     obj = this.updateOrg
                     if (obj.type === 'A') {
-                        obj.permissions = [],
-                            obj.uri = "",
-                            obj.scope_tag = ""
+                        obj.permissions = [];
+                            obj.uri = "";
+                            obj.scope_tag = "";
 
                     }
                     method = 'put',
@@ -571,19 +640,20 @@
                             parentCode: obj.parent_code,
                             permissions: obj.permissions,
                             scopeTag: obj.scope_tag,
-                            sourceLevel: obj.source_level,
+                            sourceLevel: obj.resource_level,
                             system: this.systemCode,
                             text: obj.name,
                             type: obj.type,
                             uri: obj.uri,
                             id: obj.id,
-                            orderNum: obj.order_num
+                            orderNum: obj.order_num,
+                            icon:obj.icon
                         }
                 }
                 this.$refs['powerForm'].validate((valid) => {
-                    if (valid && checkParentCode) {
+                    if (valid && checkParentCode&&checkLevel) {
                         axios({
-                            url: this.baseUrl+'resource',
+                            url:this.baseUrl+ 'resource',
                             method: method,
                             headers: '',
                             data: postData
@@ -596,6 +666,7 @@
                                         message: '新增成功',
                                         type: 'success'
                                     });
+                                    
                                     this.cancelOrg(flag)
                                 } else {
                                     this.cancelOrg(flag)
@@ -632,7 +703,7 @@
             // 获取表格数据
             getTableData() {
                 axios({
-                    url: this.baseUrl+'resource',
+                    url:this.baseUrl+ 'resource',
                     method: 'get',
                     headers: {},
                     params: {
@@ -653,7 +724,7 @@
             },
             // 编辑窗口赋值
             handleUpdateData(data) {
-                this.loadParentOotions(data.type,data.sourceLevel);
+                this.loadParentOotions(data.sourceLevel);
                 this.dialogFormVisible = true;
                 let roleList = []
                 if (data.permissions.length === 0) {
@@ -693,19 +764,28 @@
                         }
                         roleList.push(list);
                     });
+                } 
+                let icon
+                if(data.sourceLevel===1){
+                    icon=data.icon
                 }
-
                 this.updateOrg = {
                     parent_code: data.parentCode,
                     scope_tag: data.scopeTag,
-                    source_level: data.sourceLevel,
+                    resource_level:data.sourceLevel,
                     name: data.text,
                     type: data.type,
                     uri: data.uri,
                     code: data.code,
                     roleList: roleList,
                     id: data.id,
-                    order_num: data.orderNum
+                    order_num: data.orderNum,
+                    parent_code_errSpan: false,
+                    parent_code_errInfo: '',
+                    levelErrSpan:false,
+                    levelErrInfo:'',
+                    icon:icon
+
                 }
 
             },
@@ -714,45 +794,45 @@
                 if (flag === 'add') {
                     this.dialogForm2Visible = false
                     this.$refs.powerForm.resetFields();
-                    // this.newOrg = {
-                    //     scope_tag: 'ORGAN',
-                    //     roleList: [
-                    //         {
-                    //             code: '',
-                    //             name: '',
-                    //             minus: false,
-                    //             errSpan: false,
-                    //             errInfo: '',
-                    //             errValueSpan: false,
-                    //             errValueInfo: ''
-                    //         }
-                    //     ],
-                    //     parent_code_errSpan: true,
-                    //     parent_code_errInfo: ''
-                    // }
+                    this.checkLevel(flag);
+                    this.checkParentCode(flag);
+                    this.newOrg = {
+                        roleList: [
+                            {
+                                code: '',
+                                name: '',
+                                minus: false,
+                                errSpan: false,
+                                errInfo: '',
+                                errValueSpan: false,
+                                errValueInfo: ''
+                            }
+                        ],
+                    }
+                    this.newOrg.levelErrSpan=false;
                 } else if (flag === 'update') {
                     this.dialogFormVisible = false
                     this.$refs.powerForm.resetFields();
-                    // this.updateOrg = {
-                    //     roleList: [
-                    //         {
-                    //             code: '',
-                    //             name: '',
-                    //             minus: false,
-                    //             errSpan: false,
-                    //             errInfo: '',
-                    //             errValueSpan: false,
-                    //             errValueInfo: ''
-                    //         }
-                    //     ],
-                    //     parent_code_errSpan: true,
-                    //     parent_code_errInfo: ''
-                    // }
+                    this.checkLevel(flag);
+                    this.checkParentCode(flag);
+                     this.updateOrg = {
+                        roleList: [
+                            {
+                                code: '',
+                                name: '',
+                                minus: false,
+                                errSpan: false,
+                                errInfo: '',
+                                errValueSpan: false,
+                                errValueInfo: ''
+                            }
+                        ],
+                    }
                 }
             },
             deleteData(id) {//删除
                 axios({
-                    url: this.baseUrl+'resource/' + id,
+                    url:this.baseUrl+ 'resource/' + id,
                     method: 'delete',
                     headers: {}
                 }).then(res => {
@@ -784,7 +864,7 @@
             },
             loadDics(dicCode, dics) {
                 axios({
-                    url: this.baseUrl+'dicItem/tree',
+                    url:this.baseUrl+ 'dicItem/tree',
                     method: 'get',
                     headers: {},
                     params: {
@@ -808,7 +888,7 @@
                 }
 
                 axios({
-                    url: this.baseUrl+'resource/dir',
+                    url:this.baseUrl+ 'resource/dir',
                     method: 'get',
                     headers: {},
                     params: params
@@ -856,6 +936,10 @@
                 }else{
                     this.loadParentOotions();
                 }
+            },
+            handleClose(done) {
+                this.drawer=false;
+                this.newOrg.icon=this.radio
             }
         },
         created: function () {
@@ -869,10 +953,10 @@
         }
     }
 </script>
-<style scoped>
-    .powerPage {
+<style >
+   .powerPage {
         font-size: 14px;
-        height: 96%;
+        height: 93%;
         overflow: auto;
     }
 
@@ -909,6 +993,40 @@
     }
 
     .card_height {
-        min-height: calc(100vh - 100px);
+        min-height: calc(100vh - 115px);
+    }
+    .iconList ul.icon-list{
+        overflow: hidden;
+        list-style: none;
+        padding: 0!important;
+        border: 1px solid #eaeefb;
+        border-radius: 4px;
+        margin: 10px 0;
+        padding: 0 0 0 20px;
+        font-size: 14px;
+        color: #5e6d82;
+        line-height: 2em;
+    }
+    .icon-list li {
+        float: left;
+        width: 10%;
+        text-align: center;
+        height: 30px;
+        line-height: 30px;
+        color: #666;
+        font-size: 13px;
+        border-right: 1px solid #eee;
+        border-bottom: 1px solid #eee;
+        margin-right: -1px;
+        margin-bottom: -1px;;
+    }
+    .icon-list li span {
+        line-height: normal;
+        font-family: Helvetica Neue,Helvetica,PingFang SC,Hiragino Sans GB,Microsoft YaHei,SimSun,sans-serif;
+        color: #99a9bf;
+        transition: color .15s linear;
+    }
+    .el-radio-group{
+        width:100%;
     }
 </style>

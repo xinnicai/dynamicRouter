@@ -2,7 +2,7 @@
     <div class="threePart">
         <el-row :guitter="12" style="margin-bottom:10px">
             <el-col :span="24">
-                <HeadAction :name="selectedHead" v-on:update:select="getNewName"></HeadAction>
+                <HeadAction :name="selectedHead" v-on:update:select="getNewName" :config="configData.headConfig"></HeadAction>
             </el-col>
         </el-row>
         <el-row :gutter="12">
@@ -94,13 +94,18 @@ export default {
 </script>
 <style>
   .threePart .el-tree{
-    min-height: calc(100vh - 270px)!important;
-    max-height: calc(100vh - 270px)!important;
+    min-height: calc(100vh - 350px)!important;
+    max-height: calc(100vh - 350px)!important;
     overflow: auto;
 }
   .threePart .BaseCrud{
-  min-height: calc(100vh - 155px)!important;
-  max-height: calc(100vh - 155px)!important;
+  min-height: calc(100vh - 160px)!important;
+  max-height: calc(100vh - 160px)!important;
+  overflow: auto;
+}
+.el-card{
+   min-height: calc(100vh - 160px)!important;
+  max-height: calc(100vh - 160px)!important;
   overflow: auto;
 }
 </style>

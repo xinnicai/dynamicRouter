@@ -23,24 +23,36 @@ export function getInfo(token) {
   })
 }
 
+export function getPermission(){
+  return request({
+    url: 'current/activeRolePermissions',
+    method: 'get',
+  })
+}
+
 export function getRouter(roule) {
-  console.log(roule)
   if (roule === 'admin') {
-    return axios.get(
-      // ' https://www.easy-mock.com/mock/5ca8799b4f62671c250622a9/vlogin/user/getRouterAdmin'
-      // 'http://localhost:8888/getRouterAdmin'
-      'http://10.8.0.165:8081/bimp/resource/menu'
-    )
+    return request({
+      url: 'resource/menu',
+      method: 'get',
+    })
+    // return axios.get(
+    //   // ' https://www.easy-mock.com/mock/5ca8799b4f62671c250622a9/vlogin/user/getRouterAdmin'
+    //   // 'http://localhost:8888/getRouterAdmin'
+    //   'http://localhost:8081/bimp/resource/menu'
+    // )
   } else {
-    return axios.get(
-      ' https://www.easy-mock.com/mock/5ca8799b4f62671c250622a9/vlogin/user/getRouteReditor'
-    )
+    return request({
+      url: 'resource/menu',
+      method: 'get',
+    })
   }
 }
 
+
 export function logout() {
   return request({
-    url: '/user/logout',
-    method: 'post'
+    url: 'http://10.8.0.143:7080/cas/logout',
+    method: 'get'
   })
 }

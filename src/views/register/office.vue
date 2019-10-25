@@ -28,7 +28,7 @@
                         <el-col :span="24">
                             <el-input placeholder="输入名称" style="width: 300px" v-model="queryName"></el-input>
                             <el-button icon="el-icon-search" type="primary" @click="loadOffices">搜索</el-button>
-                            <el-button icon="el-icon-plus" type="primary" style="margin-left: 10px" @click="showForm">
+                            <el-button icon="el-icon-plus" type="primary" style="margin-left: 10px" @click="showForm" v-if="hasPermission('office.add')">
                                 新增项
                             </el-button>
                         </el-col>
@@ -38,7 +38,8 @@
                                 :data="tableData"
                                 style="width: 100%;margin-bottom: 20px;"
                                 row-key="id"
-                                border>
+                                border
+                                default-expand-all>
                             <el-table-column
                                     prop="code"
                                     label="科室代码"
@@ -59,12 +60,12 @@
                                 <template slot-scope="scope">
                                     <el-button
                                             size="mini"
-                                            @click="showForm(scope.row)">编辑
+                                            @click="showForm(scope.row)" v-if="hasPermission('office.edit')">编辑
                                     </el-button>
                                     <el-button
                                             size="mini"
                                             type="danger"
-                                            @click="handleDelete(scope.row)">删除
+                                            @click="handleDelete(scope.row)" v-if="hasPermission('office.del')">删除
                                     </el-button>
                                 </template>
                             </el-table-column>
@@ -86,18 +87,18 @@
 			</el-col>
 		</el-row>
           <!-- 弹窗 -->
-        <el-dialog :title="formTitle" :visible.sync="dialogFormVisible" width="65%" @close="cancel">
+       <el-dialog :title="formTitle" :visible.sync="dialogFormVisible" width="65%" @close="cancel">
             <el-form :model="office" :rules="formRules" ref="officeForm" label-width="100px" class="demo-ruleForm">
                 <el-row :gutter="10" class="dialogLabel">
                     <el-col :span="8">
                         <el-form-item label="科室代码" prop="code">
-                            <el-input auto-complete="off" style="width:150px" :disabled="formDisabled"
+                            <el-input autocomplete="off" style="width:150px" :disabled="formDisabled"
                                       v-model="office.code"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="科室名称" prop="name">
-                            <el-input auto-complete="off" style="width:150px" v-model="office.name"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="office.name"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
@@ -112,7 +113,7 @@
                 <el-row :gutter="10" class="dialogLabel">
                     <el-col :span="8">
                         <el-form-item label="其他代码">
-                            <el-input auto-complete="off" style="width:150px" v-model="office.otherCode"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="office.otherCode"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
@@ -149,36 +150,36 @@
                 <el-row :gutter="10" class="dialogLabel">
                     <el-col :span="8">
                         <el-form-item label="其他名称">
-                            <el-input auto-complete="off" style="width:150px" v-model="office.otherName"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="office.otherName"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="16">
                         <el-form-item label="地址">
-                            <el-input auto-complete="off" style="width:250px" v-model="office.address"></el-input>
+                            <el-input autocomplete="off" style="width:250px" v-model="office.address"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="10" class="dialogLabel">
                     <el-col :span="8">
                         <el-form-item label="电子邮箱">
-                            <el-input auto-complete="off" style="width:150px" v-model="office.email"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="office.email"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="联系电话">
-                            <el-input auto-complete="off" style="width:150px" v-model="office.telphone"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="office.telphone"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="科室描述">
-                            <el-input auto-complete="off" style="width:150px" v-model="office.description"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="office.description"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="10" class="dialogLabel">
                     <el-col :span="8">
                         <el-form-item label="拼音助记">
-                            <el-input auto-complete="off" style="width:150px" :disabled="formDisabled"
+                            <el-input autocomplete="off" style="width:150px" :disabled="formDisabled"
                                       v-model="office.pycode"></el-input>
                         </el-form-item>
                     </el-col>
@@ -204,41 +205,46 @@
                     <!--                </el-col>-->
                     <el-col :span="8">
                         <el-form-item label="排序">
-                            <el-input auto-complete="off" style="width:150px" v-model="office.orderNum"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="office.orderNum"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
-                <el-row class="dialogLabel" v-if="visible">
-                    <el-tabs v-model="activeName" type="border-card" @tab-click="handleTabClick">
-                        <el-tab-pane label="上级科室" name="first">
-                            <el-table ref="singleTable" :data="parentOffices"
-                                      highlight-current-row @current-change="handleCurrentChange"
-                                      style="width: 100%">
-                                <el-table-column type="index" width="50"></el-table-column>
-                                <el-table-column property="code" label="机构代码" width="120"></el-table-column>
-                                <el-table-column property="name" label="机构名称" width="120"></el-table-column>
-                                <el-table-column property="registerNumber" label="登记号"></el-table-column>
-                                <el-table-column property="classifyCode" label="机构分类"></el-table-column>
-                            </el-table>
-                        </el-tab-pane>
-                        <el-tab-pane label="下级科室" name="second">
-                            <el-table ref="singleTable" :data="subOffices"
-                                      highlight-current-row @current-change="handleCurrentChange"
-                                      style="width: 100%">
-                                <el-table-column type="index" width="50"></el-table-column>
-                                <el-table-column property="code" label="机构代码" width="120"></el-table-column>
-                                <el-table-column property="name" label="机构名称" width="120"></el-table-column>
-                                <el-table-column property="registerNumber" label="登记号"></el-table-column>
-                                <el-table-column property="classifyCode" label="机构分类"></el-table-column>
-                            </el-table>
-                            <el-pagination @current-change="subCurrentChange"
-                                           :current-page="subCurrentPage"
-                                           :page-size="10"
-                                           layout="total, prev, pager, next, jumper"
-                                           :total="subTotal">
-                            </el-pagination>
-                        </el-tab-pane>
-                    </el-tabs>
+                <el-row class="dialogLabel" >
+                    <el-col :span="24">
+                         <el-tabs class="modal_tab" v-model="activeName" type="border-card" @tab-click="handleTabClick" v-if="tableVisible">
+                            <el-tab-pane label="上级科室" name="first">
+                            
+                                <el-table ref="singleTable" :data="parentOffices"
+                                        highlight-current-row @current-change="handleCurrentChange"
+                                        style="width: 100%">
+                                    <el-table-column type="index" width="50"></el-table-column>
+                                    <el-table-column property="code" label="机构代码" width="120"></el-table-column>
+                                    <el-table-column property="name" label="机构名称" width="120"></el-table-column>
+                                    <el-table-column property="registerNumber" label="登记号"></el-table-column>
+                                    <el-table-column property="classifyCode" label="机构分类"></el-table-column>
+                                </el-table> 
+                            </el-tab-pane>
+                            <el-tab-pane label="下级科室" name="second">
+                                <el-table ref="singleTable" :data="subOffices"
+                                        highlight-current-row @current-change="handleCurrentChange"
+                                        style="width: 100%">
+                                    <el-table-column type="index" width="50"></el-table-column>
+                                    <el-table-column property="code" label="机构代码" width="120"></el-table-column>
+                                    <el-table-column property="name" label="机构名称" width="120"></el-table-column>
+                                    <el-table-column property="registerNumber" label="登记号"></el-table-column>
+                                    <el-table-column property="classifyCode" label="机构分类"></el-table-column>
+                                </el-table>
+                                <el-pagination @current-change="subCurrentChange"
+                                            :current-page="subCurrentPage"
+                                            :page-size="10"
+                                            layout="total, prev, pager, next, jumper"
+                                            :total="subTotal">
+                                </el-pagination> 
+                            </el-tab-pane>
+                        </el-tabs> 
+                    </el-col>
+                     
+                    
                 </el-row>
                 <el-form-item class="dialog_button">
                     <el-button @click="cancel()">取 消</el-button>
@@ -256,7 +262,7 @@
             return {
                 // 字典组或字典名称
                 groupOrDicName: null,
-                visible: false,
+                tableVisible: false,
                 version: 'system', // 当前版本
                 versions: [],
                 checked: true,
@@ -302,13 +308,13 @@
             showForm(row) {
                 if (!!row.id) {
                     this.office = row;
-                    this.visible = true;
                     this.activeName= 'first';
                     this.parentOffices= []; //上级
                     this.subOffices= []; //下级
                     this.loadParentOffices();
                     this.formDisabled = true;
                     this.formTitle = '科室注册-编辑';
+                    this.tableVisible = true;
                 } else {
                     this.office = {
                         version: this.version
@@ -316,12 +322,17 @@
                     if(!!this.orgCode){
                         this.office.organCode = this.orgCode;
                     }
-                    this.visible = false;
                     this.formDisabled = false;
                     this.formTitle = '科室注册-创建';
                 }
                 this.loadOfficeTree(this.office.organCode);
+                // if(this.formTitle==='科室注册-编辑'){
+                //     this.tableVisible=true
+                // }else{
+                //     this.tableVisible=false
+                // }
                 this.dialogFormVisible = true
+
             },
             cancel() {
                 this.dialogFormVisible = false;
@@ -364,7 +375,7 @@
             // 加载字典版本
             loadVersions() {
                 axios({
-                    url: this.baseUrl+'version',
+                    url:this.baseUrl+ 'version',
                     method: 'get',
                     headers: {},
                     params: {
@@ -392,7 +403,7 @@
             },
             loadOffices() {
                 axios({
-                    url: this.baseUrl+'office',
+                    url:this.baseUrl+ 'office',
                     method: 'get',
                     headers: {},
                     params: {
@@ -420,7 +431,7 @@
                     if (valid) {
                         if (!!this.office.id) {
                             axios({
-                                url: this.baseUrl+'office',
+                                url:this.baseUrl+ 'office',
                                 method: 'put',
                                 headers: {},
                                 data: this.office
@@ -452,7 +463,7 @@
                             })
                         } else {
                             axios({
-                                url: this.baseUrl+'office',
+                                url:this.baseUrl+ 'office',
                                 method: 'post',
                                 headers: {},
                                 data: this.office
@@ -489,7 +500,7 @@
             },
             loadOrgTree() {
                 axios({
-                    url: this.baseUrl+'organization/' + this.version + '/tree',
+                    url:this.baseUrl+ 'organization/' + this.version + '/tree',
                     method: 'get',
                     headers: {}
                 }).then(res => {
@@ -503,7 +514,7 @@
             }, loadOfficeTree(code) {
                 if (!!code) {
                     axios({
-                        url: this.baseUrl+'office/tree',
+                        url:this.baseUrl+ 'office/tree',
                         method: 'post',
                         headers: {},
                         data: {
@@ -522,7 +533,7 @@
             },
             loadDics(dicCode, dics) {
                 axios({
-                    url: this.baseUrl+'dicItem/tree',
+                    url:this.baseUrl+ 'dicItem/tree',
                     method: 'get',
                     headers: {},
                     params: {
@@ -538,7 +549,7 @@
                 })
             }, loadParentOffices() {//加载上级
                 axios({
-                    url: this.baseUrl+'office/' + this.office.id + '/parent',
+                    url:this.baseUrl+ 'office/' + this.office.id + '/parent',
                     method: 'get',
                     headers: {}
                 }).then(res => {
@@ -550,7 +561,7 @@
                 })
             }, loadSubsTable() {//加载下级
                 axios({
-                    url: this.baseUrl+'office',
+                    url:this.baseUrl+ 'office',
                     method: 'get',
                     headers: {},
                     params: {
@@ -570,7 +581,7 @@
                 })
             }, deleteData(id) {//删除
                 axios({
-                    url: this.baseUrl+'office/' + id,
+                    url:this.baseUrl+ 'office/' + id,
                     method: 'delete',
                     headers: {}
                 }).then(res => {
@@ -651,9 +662,26 @@
     }
 
     .card_height{
-        min-height: calc(100vh - 110px);
+        min-height: calc(100vh - 120px);
     }
     .dialogLabel {
         margin-top: 0px;
+    }
+    .modal_tab .el-tabs__content{
+        top: 0px;
+    }
+    .modal_tab  .el-tabs__nav-wrap {
+        margin-top: 0px;
+    }
+     .modal_tab  .el-tabs__content {
+        height: 100%;
+    }
+    .modal_tab .el-tabs__item.is-active{
+        color: #409EFF !important;
+    }
+    .el-tree {
+        max-height: calc(100vh - 215px);
+        overflow-x: auto;
+        overflow-y: auto;
     }
 </style>

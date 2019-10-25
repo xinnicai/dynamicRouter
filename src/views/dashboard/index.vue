@@ -57,13 +57,21 @@ export default {
         this.$store.dispatch('Login', { username: 'admin', password: '' }).then(() => {
           location.reload()
         }).catch(() => {
-          this.$message('接口出现了一些问题....')
+           this.$message({
+              showClose: true,
+              message: '接口出现了一些问题....',
+              type: 'error'
+            });
         })
       } else {
         this.$store.dispatch('Login', { username: 'editor', password: '' }).then(() => {
           location.reload()
         }).catch(() => {
-          this.$message('接口出现了一些问题....')
+           this.$message({
+              showClose: true,
+              message: '接口出现了一些问题....',
+              type: 'error'
+            });
         })
       }
     },

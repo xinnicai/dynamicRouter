@@ -2,11 +2,11 @@
 		<div>
 		<el-row :gutter="12">
 			<el-col :span="5">
-				 <el-card class="box-card">
+				 <el-card class="card_height">
 	                <el-row>
-						<el-button type="primary" @click="addGroupOrDic" icon="el-icon-document-add"></el-button>
-						<el-button type="primary" @click="editGroupOrDic" icon="el-icon-edit"></el-button>
-	                    <el-button @click="deleteGroupOrDic" type="danger" icon="el-icon-delete" style="margin-left:0px"></el-button>
+						<el-button type="primary" @click="addGroupOrDic" icon="el-icon-document-add" v-if="hasPermission('esb.group.add')"></el-button>
+						<el-button type="primary" @click="editGroupOrDic" icon="el-icon-edit" v-if="hasPermission('esb.group.edit')"></el-button>
+	                    <el-button @click="deleteGroupOrDic" type="danger" icon="el-icon-delete" style="margin-left:0px" v-if="hasPermission('esb.group.del')"></el-button>
 	                </el-row>
 	                <el-row style="margin-top:10px">
 	                    <el-col :span="24">
@@ -27,13 +27,13 @@
 	            </el-card>
 			</el-col>
 			<el-col :span="19">
-				 <el-card class="box-card">
+				<el-card class="card_height">
 	                <el-row>
 	                    <el-col :span="24">
 	                        <el-input placeholder="输入名称" v-model="dicItemsData.searchName"
 	                                  style="width: 300px"></el-input>
 	                        <el-button icon="el-icon-search" type="primary" @click="loadItems">搜索</el-button>
-							<el-button type="primary" @click="addItem">服务注册</el-button>
+							<el-button type="primary" @click="addItem" v-if="hasPermission('esb.add')">服务注册</el-button>
 	                    </el-col>
 	                </el-row>
 	                <el-row style="margin-top:10px">
@@ -44,6 +44,7 @@
 	                            highlight-current-row
 	                            @current-change="selectItem"
 	                            border
+	                            default-expand-all
 	                            :tree-props="{children: 'children', hasChildren: 'hasChildren'}">
 	                        <el-table-column
 	                                prop="key"
@@ -73,24 +74,24 @@
 									width="200">
 							</el-table-column>
 							<el-table-column width="80" prop="runStatus" label="运行状态" show-overflow-tooltip>
-								<template scope="scope">
+								<template slot-scope="scope">
 									<span v-if="scope.row.runStatus==0" style="color:green;">正常</span>
 									<span v-if="scope.row.runStatus==1" style="color:red;">异常</span>
 								</template>
 							</el-table-column>
 							<el-table-column width="80" prop="status" label="发布状态" show-overflow-tooltip>
-								<template scope="scope">
+								<template slot-scope="scope">
 									<span v-if="scope.row.status==0" style="color:red;">未发布</span>
 									<span v-if="scope.row.status==1" style="color:green;">已发布</span>
 								</template>
 							</el-table-column>
 	                        <el-table-column label="操作">
 	                            <template slot-scope="scope">
-									<el-button  v-if="scope.row.status==0" size="mini" type="success" @click="publish(scope.$index, scope.row)">发布</el-button>
-									<el-button  v-if="scope.row.status==1" size="mini" type="success" @click="stop(scope.$index, scope.row)">停用</el-button>
-									<el-button v-if="scope.row.status==0" size="mini" type="primary" @click="editItem(scope.$index, scope.row)" >编辑</el-button>
+									<el-button  v-if="scope.row.status==0 && hasPermission('esb.active')" size="mini" type="success" @click="publish(scope.$index, scope.row)">发布</el-button>
+									<el-button  v-if="scope.row.status==1 && hasPermission('esb.active')" size="mini" type="success" @click="stop(scope.$index, scope.row)">停用</el-button>
+									<el-button v-if="scope.row.status==0 && hasPermission('esb.edit')" size="mini" type="primary" @click="editItem(scope.$index, scope.row)" >编辑</el-button>
 									<el-button v-if="scope.row.status==1" size="mini" type="primary" disabled >编辑</el-button>
-									<el-button  v-if="scope.row.status==0" slot="reference" size="mini" type="danger" @click="deleteItem(scope.$index, scope.row)">删除</el-button>
+									<el-button  v-if="scope.row.status==0 && hasPermission('esb.del')" slot="reference" size="mini" type="danger" @click="deleteItem(scope.$index, scope.row)">删除</el-button>
 									<el-button  v-if="scope.row.status==1" slot="reference" size="mini" type="danger" disabled >删除</el-button>
 	                            </template>
 	                        </el-table-column>
@@ -111,7 +112,7 @@
 	            </el-card>
 			</el-col>
 		</el-row>
-	      	<!-- 新建/编辑分组 -->
+	    <!-- 新建/编辑分组 -->
 		<el-dialog :title="groupDialog.title" :visible.sync="groupDialog.show" width="65%" @close="closeGroupDialog">
 			<el-form :rules="groupDialog.addGroupRules" ref="addGroupForm" :model="newGroup" label-width="100px">
 				<el-form-item label="所属类别" prop="parentCode">
@@ -179,7 +180,7 @@
 					<el-button type="primary" @click="saveItem(itemDialog.action)">保存</el-button>
 				</el-form-item>
 			</el-form>
-		</el-dialog>      
+		</el-dialog>
 	</div>
 </template>
 <script>
@@ -198,7 +199,7 @@
 	        // 验证服务代码唯一
 	        var validItemKeyUnique = (rule, value, callback) => {
 	            axios({
-	                url: this.baseUrl+'endpoint/key',
+	                url:this.baseUrl+ 'endpoint/key',
 	                method: 'get',
 	                params: {
 	                    dicCode: this.selectedGroup.code,
@@ -215,7 +216,7 @@
            // 验证服务名称唯一
             var validItemTextUnique = (rule, value, callback) => {
                 axios({
-                    url: this.baseUrl+'endpoint/text',
+                    url:this.baseUrl+ 'endpoint/text',
                     method: 'get',
                     params: {
                         text: value
@@ -231,10 +232,10 @@
           // 验证服务发布地址唯一
             var validItemPublishUrlUnique = (rule, value, callback) => {
                 axios({
-                    url: this.baseUrl+'endpoint/publishUrl',
+                    url:this.baseUrl+ 'endpoint/publishUrl',
                     method: 'get',
                     params: {
-                        publishUrl: value
+                        publishurl:this.baseUrl+ value
                     }
                 }).then(res => {
                     if (res.data.content) {
@@ -322,7 +323,7 @@
 	                        {required: true, message: '名称不能为空', trigger: 'blur'},
                             {validator: validItemTextUnique, trigger: 'blur'}
 	                    ],
-                        publishUrl: [
+                        publishurl:this.baseUrl+ [
                             {required: true, message: '发布地址不能为空', trigger: 'blur'},
                             {validator: validItemPublishUrlUnique, trigger: 'blur'}
                         ]
@@ -372,7 +373,7 @@
 	        // 加载服务组树
 	        loadDicGroups() {
 	            axios({
-	                url: this.baseUrl+'GroupCtg/tree',
+	                url:this.baseUrl+ 'GroupCtg/tree',
 	                method: 'get',
 	                headers: {},
 	                params: {
@@ -403,7 +404,11 @@
 	        // 添加组
 	        addGroupOrDic(command) {
 	            if (!this.selectedGroup) {
-	                this.$message.error('请选择所属类别');
+					this.$message({
+						showClose: true,
+						message: '请选择所属类别',
+						type: 'warning'
+					});
 	                return;
 	            }
 
@@ -429,12 +434,34 @@
 	            switch (action) {
 	                case 'edit':
 	                    axios({
-	                        url: this.baseUrl+'GroupCtg',
+	                        url:this.baseUrl+ 'GroupCtg',
 	                        method: 'put',
 	                        headers: {},
 	                        data: this.newGroup
 	                    }).then(res => {
-	                        this.loadDicGroups();
+							this.loadDicGroups();
+							let data = res.data;
+							if(data.success){
+								this.$notify({
+									title: '编辑服务组-服务管理',
+									message: '编辑服务组成功！',
+									type: 'success'
+								});
+							}else{
+								if(!!data.errMsg){
+									this.$notify.error({
+										title: '编辑服务组-服务管理',
+										message: '编辑服务组失败原因'+data.errMsg,
+										duration: 0
+									});
+								}else{
+									this.$notify.error({
+										title: '编辑服务组-服务管理',
+										message: '编辑服务组失败!',
+										duration: 0
+									});
+								}
+							}
 	                    });
 	                    this.closeGroupDialog();
 	                    break
@@ -442,12 +469,34 @@
 	                    this.$refs['addGroupForm'].validate((valid) => {
 	                        if (valid) {
 	                            axios({
-	                                url: this.baseUrl+'GroupCtg',
+	                                url:this.baseUrl+ 'GroupCtg',
 	                                method: 'post',
 	                                headers: {},
 	                                data: this.newGroup
 	                            }).then(res => {
-	                                this.loadDicGroups();
+									this.loadDicGroups();
+									let data = res.data;
+									if(data.success){
+										this.$notify({
+											title: '新增服务组-服务管理',
+											message: '新增服务组成功！',
+											type: 'success'
+										});
+									}else{
+										if(!!data.errMsg){
+											this.$notify.error({
+												title: '新增服务组-服务管理',
+												message: '新增服务组失败原因'+data.errMsg,
+												duration: 0
+											});
+										}else{
+											this.$notify.error({
+												title: '新增服务组-服务管理',
+												message: '新增服务组失败!',
+												duration: 0
+											});
+										}
+									}
 	                            });
 	                            this.closeGroupDialog();
 	                        } else {
@@ -471,14 +520,18 @@
 	                this.groupDialog.title = '编辑类别';
 	                this.groupDialog.action = 'edit';
 	                axios({
-	                    url: this.baseUrl+'GroupCtg/' + this.selectedGroup.id,
+	                    url:this.baseUrl+ 'GroupCtg/' + this.selectedGroup.id,
 	                    method: 'get'
 	                }).then(res => {
 	                    this.newGroup = res.data.content;
 	                    this.groupDialog.show = true;
 	                });
 	            }  else {
-	                this.$message.error("请先选择类别");
+					this.$message({
+						showClose: true,
+						message: '请先选择类别',
+						type: 'warning'
+					});
 	            }
 	        },
 	        deleteGroupOrDic() {
@@ -490,11 +543,15 @@
 	                }).then((command) => {
 	                    if ('confirm' == command) {
 	                        axios({
-	                            url: this.baseUrl+'GroupCtg/' + this.selectedGroup.id,
+	                            url:this.baseUrl+ 'GroupCtg/' + this.selectedGroup.id,
 	                            method: 'delete'
 	                        }).then(res => {
 	                            if(res.data.content == "0"){
-                                    this.$message.error("无法删除该类别，请先删除此类别下内容");
+									this.$message({
+										showClose: true,
+										message: '无法删除该类别，请先删除此类别下内容',
+										type: 'warning'
+									});
 								}
 	                            this.loadDicGroups();
 	                        })
@@ -503,7 +560,11 @@
 	                    // 取消
 	                })
 	            }  else {
-	                this.$message.error("请选择要删除的类别");
+					this.$message({
+						showClose: true,
+						message: '请选择要删除的类别',
+						type: 'warning'
+					});
 	            }
 	        },
 	
@@ -513,15 +574,16 @@
 	        // 加载服务
 	        loadItems() {
 	            if (!this.selectedGroup) {
-	                this.$message.error('请选择类别');
-	                return;
-	            }
+                    dicCode ="root";
+	            } else {
+                    dicCode = this.selectedGroup.code;
+				}
 	            axios({
-	                url: this.baseUrl+'endpoint',
+	                url:this.baseUrl+ 'endpoint',
 	                method: 'get',
 	                headers: {},
 	                params: {
-	                    dicCode: this.selectedGroup.code,
+	                    dicCode: dicCode,
 	                    text: this.dicItemsData.searchName,
 	                    sort: [],
 	                    page: this.dicItemsData.currentPage,
@@ -540,7 +602,11 @@
 	        // 添加服务
 	        addItem(command) {
 	            if (!this.selectedGroup) {
-	                this.$message.error('请选择类别');
+					this.$message({
+						showClose: true,
+						message: '请选择类别',
+						type: 'warning'
+					});
 	                return;
 	            }
 
@@ -575,11 +641,33 @@
 	            switch (action) {
 	                case 'edit':
 	                    axios({
-	                        url: this.baseUrl+'endpoint',
+	                        url:this.baseUrl+ 'endpoint',
 	                        method: 'put',
 	                        data: this.newItem
 	                    }).then(res => {
-	                        this.loadItems();
+							this.loadItems();
+							let data = res.data;
+							if(data.success){
+								this.$notify({
+									title: '编辑服务-服务管理',
+									message: '编辑服务成功！',
+									type: 'success'
+								});
+							}else{
+								if(!!data.errMsg){
+									this.$notify.error({
+										title: '编辑服务-服务管理',
+										message: '编辑服务失败原因'+data.errMsg,
+										duration: 0
+									});
+								}else{
+									this.$notify.error({
+										title: '编辑服务-服务管理',
+										message: '编辑服务失败!',
+										duration: 0
+									});
+								}
+							}
 	                    })
 	                    this.closeItemDialog();
 	                    break;
@@ -595,7 +683,29 @@
 	                                method:'post',
 	                                data: this.newItem
 	                            }).then(res => {
-	                                this.loadItems();
+									this.loadItems();
+									let data = res.data;
+									if(data.success){
+										this.$notify({
+											title: '新增服务-服务管理',
+											message: '新增服务成功！',
+											type: 'success'
+										});
+									}else{
+										if(!!data.errMsg){
+											this.$notify.error({
+												title: '新增服务-服务管理',
+												message: '新增服务失败原因'+data.errMsg,
+												duration: 0
+											});
+										}else{
+											this.$notify.error({
+												title: '新增服务-服务管理',
+												message: '新增服务失败!',
+												duration: 0
+											});
+										}
+									}
 	                            })
 	                            this.closeItemDialog();
 	                        } else {
@@ -610,21 +720,65 @@
             // 发布服务
             publish(index, data) {
                         axios({
-                            url: this.baseUrl+'endpoint/publish',
+                            url:this.baseUrl+ 'endpoint/publish',
                             method: 'post',
                             data: data
                         }).then(res => {
-                            this.loadItems();
+							this.loadItems();
+							let data = res.data;
+							if(data.success){
+								this.$notify({
+									title: '发布服务-服务管理',
+									message: '服务发布成功！',
+									type: 'success'
+								});
+							}else{
+								if(!!data.errMsg){
+									this.$notify.error({
+										title: '发布服务-服务管理',
+										message: '服务发布失败原因'+data.errMsg,
+										duration: 0
+									});
+								}else{
+									this.$notify.error({
+										title: '发布服务-服务管理',
+										message: '服务发布失败!',
+										duration: 0
+									});
+								}
+							}
                         })
             },
             // 停止服务
             stop(index, data) {
                 axios({
-                    url: this.baseUrl+'endpoint/stop',
+                    url:this.baseUrl+ 'endpoint/stop',
                     method: 'post',
                     data: data
                 }).then(res => {
-                    this.loadItems();
+					this.loadItems();
+					let data = res.data;
+					if(data.success){
+						this.$notify({
+							title: '停止服务-服务管理',
+							message: '服务停止成功！',
+							type: 'success'
+						});
+					}else{
+						if(!!data.errMsg){
+							this.$notify.error({
+								title: '停止服务-服务管理',
+								message: '服务停止失败原因'+data.errMsg,
+								duration: 0
+							});
+						}else{
+							this.$notify.error({
+								title: '停止服务-服务管理',
+								message: '服务停止失败!',
+								duration: 0
+							});
+						}
+					}
                 })
             },
 	        // 关闭itemDialog
@@ -641,10 +795,32 @@
 	            }).then((command) => {
 	                if ('confirm' == command) {
 	                    axios({
-	                        url: this.baseUrl+'endpoint/' + data.id,
+	                        url:this.baseUrl+ 'endpoint/' + data.id,
 	                        method: 'delete'
 	                    }).then(res => {
-	                        this.loadItems();
+							this.loadItems();
+							let data = res.data;
+							if(data.success){
+								this.$notify({
+									title: '删除字典项-服务管理',
+									message: '字典项删除成功！',
+									type: 'success'
+								});
+							}else{
+								if(!!data.errMsg){
+									this.$notify.error({
+										title: '删除字典项-服务管理',
+										message: '字典项删除失败原因'+data.errMsg,
+										duration: 0
+									});
+								}else{
+									this.$notify.error({
+										title: '删除字典项-服务管理',
+										message: '字典项删除停止失败!',
+										duration: 0
+									});
+								}
+							}
 	                    })
 	                }
 	            }).catch((e) => {
@@ -655,6 +831,7 @@
 	    created() {
 	        // 初始化参数
 			this.loadDicGroups();
+            this.loadItems();
 	    },
 	    watch: {
 	        /**
@@ -708,8 +885,16 @@
     .dialogLabel label {
         line-height: 35px
     }
-	.box-card{
-		min-height: calc(100vh - 110px);
-	}
+	.card_height {
+        min-height: calc(100vh - 115px);
+        max-height: calc(100vh - 115px);
+        overflow-x: hidden;
+        overflow-y: scroll;
+    }
+	.el-tree {
+        max-height: calc(100vh - 195px);
+        overflow-x: auto;
+        overflow-y: auto;
+    }
 
 </style>

@@ -2,34 +2,36 @@
     <div>
         <el-row style="margin-bottom:10px">
            <el-col :span="24">
-                    <div id="dic-header">
-                        <el-select v-model="version" placeholder="请选择本地字典" style="width:210px;">
-                            <el-option v-for="(v, index) in versions" :lable="v.version" :value="v.version"
-                                    :key="v.id"></el-option>
-                        </el-select>
-                        <el-button style="margin-left:10px" @click="addVersionDialog.show = true">新增本地字典
-                        </el-button>
-                        <!-- TODO 导入本地字典 -->
-                        <!--<el-button type="primary" style="margin-left:10px" @click="">导入本地字典
-                        </el-button>-->
-                    </div>
-                </el-col>
+                <div id="dic-header">
+                    <el-select v-model="version" placeholder="请选择本地字典" style="width:210px;">
+                        <el-option v-for="(v, index) in versions" :lable="v.version" :value="v.version"
+                                :key="v.id"></el-option>
+                    </el-select>
+                    <el-button style="margin-left:10px" @click="addVersionDialog.show = true">新增本地字典
+                    </el-button>
+                    <el-button type="primary" style="margin-left:10px" @click="manageDic.show=true">管理本地字典
+                    </el-button>
+                    <!-- TODO 导入本地字典 -->
+                    <!--<el-button type="primary" style="margin-left:10px" @click="">导入本地字典
+                    </el-button>-->
+                </div>
+            </el-col>
         </el-row>
         <el-row :gutter="16">
             <el-col :span="5">
-                <el-card class="box-card leftCard">
+               <el-card class="box-card leftCard">
                     <el-row>
-                        <el-dropdown @command="addGroupOrDic">
+                        <el-dropdown @command="addGroupOrDic" v-if="hasPermission('localDic.add')">
                             <el-button type="primary">
-                                <i class="el-icon-plus"></i>
-                            </el-button> 
+                                <i class="el-icon-document-add"></i>
+                            </el-button>
                             <el-dropdown-menu slot="dropdown">
                                 <el-dropdown-item command="group">分组</el-dropdown-item>
                                 <el-dropdown-item command="dic">字典</el-dropdown-item>
                             </el-dropdown-menu>
                         </el-dropdown>
-                        <el-button type="primary" @click="editGroupOrDic" icon="el-icon-edit" ></el-button>
-	                    <el-button @click="deleteGroupOrDic" type="danger" icon="el-icon-delete" style="margin-left:0px"></el-button>
+                        <el-button type="primary" @click="editGroupOrDic" icon="el-icon-edit" v-if="hasPermission('localDic.edit')"></el-button>
+	                    <el-button @click="deleteGroupOrDic" type="danger" icon="el-icon-delete" style="margin-left:0px" v-if="hasPermission('localDic.del')"></el-button>
                     </el-row>
                     <el-row style="margin-top:10px">
                         <el-col :span="24">
@@ -41,7 +43,7 @@
                                  :data="dicGroups" :props="{label:'name'}" :filter-node-method="filterDics"
                                  @node-click="groupSelected">
                                 <span class="span-ellipsis" slot-scope="{ node, data }">
-									 <el-tooltip class="item" effect="dark" :content="node.label" placement="bottom" :open-delay="1000">
+									 <el-tooltip class="item" effect="dark" :content="node.label" placement="bottom" ::open-delay="1000">
 										<span >{{ node.label }}</span>
 									</el-tooltip>
 								</span>
@@ -80,6 +82,7 @@
                                     highlight-current-row
                                     @current-change="selectItem"
                                     border
+                                    default-expand-all
                                     :tree-props="{children: 'children', hasChildren: 'hasChildren'}">
                                 <el-table-column
                                         prop="key"
@@ -99,7 +102,7 @@
                                         prop="transferKey"
                                         label="标准编码">
                                     <template slot-scope="scope">
-                                        <el-select v-model="scope.row.transferKey" placeholder="标准字典" @change="scope.row.changed=true">
+                                        <el-select v-model="scope.row.transferKey" placeholder="标准字典" @change="scope.row.changed=true" style="width:100%">
                                             <el-option v-for="item in standardItems" :lable="item.text" :value="item.key"
                                                        :key="item.key">
                                                 <span style="float: left">{{item.key}}--{{ item.text }}</span>
@@ -210,16 +213,27 @@
                     </el-input>
                 </el-form-item>
                 <el-form-item label="标准字典版本">
-                    <el-select v-model="newDic.transferDicVersion" placeholder="请选择版本" @change="loadStandardDicTree">
+                    <el-select v-model="newDic.transferDicVersion" placeholder="请选择版本" @change="loadStandardDicTree" style="width:100% ">
                         <el-option v-for="(v, index) in standardVersions" :lable="v.version" :value="v.version"
                                    :key="v.id"></el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item label="标准字典">
-                    <el-cascader v-model="newDic.transferDicCode"
+                    <!-- <el-cascader v-model="newDic.transferDicCode"
                                  :options="standardDics" :show-all-levels="false"
                                  :props="{value: 'code',label: 'name'}"
-                                 clearable filterable></el-cascader>
+                                 clearable filterable style="width:100%"></el-cascader> -->
+                    <treeselect v-model="newDic.transferDicCode"
+                                        :clearable="true"
+                                        :searchable="true"
+                                        :disabled="false"
+                                        :options="standardDics"
+                                        :limit="3"
+                                        :max-height="200"
+                                        :placeholder="'请选择上级科室'"
+                                        style="width:100%"
+                                        :noChildrenText="' '"
+                            />
                 </el-form-item>
                 <el-form-item class="dialog_button">
                     <el-button @click="closeDicDialog">取消</el-button>
@@ -249,7 +263,7 @@
                     <el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="newItem.description"></el-input>
                 </el-form-item>
                 <el-form-item label="标准字典">
-                    <el-select v-model="newItem.transferKey" placeholder="请选择标准字典">
+                    <el-select v-model="newItem.transferKey" placeholder="请选择标准字典" style="width:100%">
                         <el-option v-for="item in standardItems" :lable="item.text" :value="item.key"
                                    :key="item.key">
                             <span style="float: left">{{item.key}}--{{ item.text }}</span>
@@ -261,6 +275,43 @@
                     <el-button type="primary" @click="saveItem(itemDialog.action)">保存</el-button>
                 </el-form-item>
             </el-form>
+        </el-dialog>
+        <!-- 管理字典 -->
+        <el-dialog title="管理本地字典" :visible.sync="manageDic.show" width="65%" :close-on-click-modal="false" :close-on-press-escape="false">
+            <el-table
+                :data="manageDic.tableData"
+                border
+                style="width: 100%">
+                <el-table-column
+                prop="version"
+                label="名称"
+                width="160">
+                 <template slot-scope="scope">
+                    <el-input size="small" v-model="scope.row.version" placeholder="请输入内容" @change="handleEdit(scope.$index, scope.row)"></el-input>
+                </template>
+                </el-table-column>
+                <el-table-column
+                prop="description"
+                label="说明">
+                <template slot-scope="scope">
+                    <el-input size="small" v-model="scope.row.description" placeholder="请输入内容" @change="handleEdit(scope.$index, scope.row)"></el-input>
+                </template>
+                </el-table-column>
+                <el-table-column
+                prop="createDate"
+                label="创建时间">
+                </el-table-column>
+                <el-table-column
+                label="操作"
+                >
+                <template slot-scope="scope">
+                    <el-button
+                    size="mini"
+                    type="danger"
+                    @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+                </template>
+                </el-table-column>
+            </el-table>
         </el-dialog>
     </div>
 
@@ -291,7 +342,7 @@ import axios from 'axios'
             // 验证字典项代码唯一
             var validItemKeyUnique = (rule, value, callback) => {
                 axios({
-                    url: this.baseUrl+'dicItem/key',
+                    url:this.baseUrl+ 'dicItem/key',
                     method: 'get',
                     params: {
                         version: this.version,
@@ -433,7 +484,7 @@ import axios from 'axios'
                     classify: null,
                     active: false,
                     visible: true,
-                    transferDicCode: null,
+                    transferDicCode: [],
                     transferDicVersion: this.standardVersion,
                     type: dicType
                 },
@@ -451,6 +502,39 @@ import axios from 'axios'
                             {required: true, message: '名称不能为空', trigger: 'blur'},
                         ]
                     }
+                },
+                // 管理本地字典
+                manageDic:{
+                    show:false,
+                    tableData:[{
+                        date: '2016-05-02',
+                        name: '王小虎',
+                        province: '上海',
+                        city: '普陀区',
+                        address: '上海市普陀区金沙江路 1518 弄',
+                        zip: 200333
+                        }, {
+                        date: '2016-05-04',
+                        name: '王小虎',
+                        province: '上海',
+                        city: '普陀区',
+                        address: '上海市普陀区金沙江路 1517 弄',
+                        zip: 200333
+                        }, {
+                        date: '2016-05-01',
+                        name: '王小虎',
+                        province: '上海',
+                        city: '普陀区',
+                        address: '上海市普陀区金沙江路 1519 弄',
+                        zip: 200333
+                        }, {
+                        date: '2016-05-03',
+                        name: '王小虎',
+                        province: '上海',
+                        city: '普陀区',
+                        address: '上海市普陀区金沙江路 1516 弄',
+                        zip: 200333
+                        }]
                 },
                 selectedItem: null,
                 //
@@ -491,7 +575,7 @@ import axios from 'axios'
             // 加载字典版本
             loadVersions() {
                 axios({
-                    url: this.baseUrl+'version',
+                    url:this.baseUrl+ 'version',
                     method: 'get',
                     headers: {},
                     params: {
@@ -501,13 +585,18 @@ import axios from 'axios'
                     let data = res.data;
                     if (data.success) {
                         this.versions.splice(0, this.versions.length);
+                        this.manageDic.tableData=[]
                         data.content.forEach(v => {
                             this.versions.push(v);
+                            this.manageDic.tableData.push(v);
                             //TODO 若当前版本的有效域和当前角色所属机构一致，则默认选中
                             if (v.scope) {
                                 this.version = v.version;
                             }
                         });
+                        if(!!!this.version&&!!this.versions&&this.versions.length>0){
+                            this.version = this.versions[0].version;
+                        }
                     }
                 }).catch(e => {
                     console.error(e);
@@ -516,7 +605,7 @@ import axios from 'axios'
             // 加载标准字典版本
             loadStandardVersions() {
                 axios({
-                    url: this.baseUrl+'version',
+                    url:this.baseUrl+ 'version',
                     method: 'get',
                     params: {
                         type: 'standard'
@@ -538,7 +627,7 @@ import axios from 'axios'
             // 加载标准字典
             loadStandardDicTree(version) {
                 axios({
-                    url: this.baseUrl+'dicGroup/tree',
+                    url:this.baseUrl+ 'dicGroup/tree',
                     method: 'get',
                     headers: {},
                     params: {
@@ -551,16 +640,36 @@ import axios from 'axios'
                     let data = res.data;
                     if (data.success) {
                         this.standardDics.splice(0, this.standardDics.length);
-                        data.content.forEach(g => this.standardDics.push(g));
+                        this.standardDics = this.convertData(data.content, 'code', 'name')
+                        console.log(this.standardDics)
+                        // data.content.forEach(g => this.standardDics.push(g));
                     }
                 })
+            },
+            convertData(listData, id, label) {
+                let nodeData = []
+                for (let i = 0; i < listData.length; i++) {
+                    if (listData[i].children === 0||!listData[i].children) {
+                        nodeData.push({
+                            label: listData[i][label],
+                            id: listData[i][id]
+                        })
+                    } else {
+                        nodeData.push({
+                            label: listData[i][label],
+                            id: listData[i][id],
+                            children: this.convertData(listData[i].children, id, label)
+                        })
+                    }
+                }
+                return nodeData
             },
             // 新增版本
             addVersion(formName) {
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
                         axios({
-                            url: this.baseUrl+'version',
+                            url:this.baseUrl+ 'version',
                             method: 'post',
                             headers: '',
                             data: this.newVersion
@@ -592,7 +701,7 @@ import axios from 'axios'
             // 加载字典分组树
             loadDicGroups() {
                 axios({
-                    url: this.baseUrl+'dicGroup/tree',
+                    url:this.baseUrl+ 'dicGroup/tree',
                     method: 'get',
                     headers: {},
                     params: {
@@ -633,7 +742,11 @@ import axios from 'axios'
             // 添加字典或字典组
             addGroupOrDic(command) {
                 if (!this.selectedGroup) {
-                    this.$message.error('请选择所属分组');
+                    this.$message({
+                        showClose: true,
+                        message: '请选择所属分组',
+                        type: 'warning'
+                    });
                     return;
                 }
                 switch (command) {
@@ -667,7 +780,7 @@ import axios from 'axios'
                             classify: null,
                             active: false,
                             visible: true,
-                            transferDicCode: ["standard","nhdd","nhdd.WS364.3","CV02.01.101"],
+                            transferDicCode: null,
                             transferDicVersion: this.standardVersion,
                             type: this.dicType
                         };
@@ -683,7 +796,7 @@ import axios from 'axios'
                 switch (action) {
                     case 'edit':
                         axios({
-                            url: this.baseUrl+'dicGroup',
+                            url:this.baseUrl+ 'dicGroup',
                             method: 'put',
                             headers: {},
                             data: this.newGroup
@@ -696,7 +809,7 @@ import axios from 'axios'
                         this.$refs['addGroupForm'].validate((valid) => {
                             if (valid) {
                                 axios({
-                                    url: 'dicGroup',
+                                    url:this.baseUrl+ 'dicGroup',
                                     method: 'post',
                                     headers: {},
                                     data: this.newGroup
@@ -728,7 +841,7 @@ import axios from 'axios'
                             this.newDic.transferDicCode = this.newDic.transferDicCode[this.newDic.transferDicCode.length - 1]
                         }
                         axios({
-                            url: this.baseUrl+'dic',
+                            url:this.baseUrl+ 'dic',
                             method: 'put',
                             headers: {},
                             data: this.newDic
@@ -745,7 +858,7 @@ import axios from 'axios'
                                     this.newDic.transferDicCode = this.newDic.transferDicCode[this.newDic.transferDicCode.length - 1]
                                 }
                                 axios({
-                                    url: this.baseUrl+'dic',
+                                    url:this.baseUrl+ 'dic',
                                     method: 'post',
                                     headers: {},
                                     data: this.newDic
@@ -772,7 +885,7 @@ import axios from 'axios'
                     this.groupDialog.title = '编辑分组';
                     this.groupDialog.action = 'edit';
                     axios({
-                        url: this.baseUrl+'dicGroup/' + this.selectedGroup.id,
+                        url:this.baseUrl+ 'dicGroup/' + this.selectedGroup.id,
                         method: 'get'
                     }).then(res => {
                         this.newGroup = res.data.content;
@@ -782,14 +895,18 @@ import axios from 'axios'
                     this.dicDialog.title = '编辑字典';
                     this.dicDialog.action = 'edit';
                     axios({
-                        url: 'dic/' + this.selectedDic.id,
+                        url:this.baseUrl+ 'dic/' + this.selectedDic.id,
                         method: 'get'
                     }).then(res => {
                         this.newDic = res.data.content;
                         this.dicDialog.show = true;
                     })
                 } else {
-                    this.$message.error("请先选择字典或字典组");
+                    this.$message({
+                        showClose: true,
+                        message: '请先选择字典或字典组',
+                        type: 'warning'
+                    });
                 }
             },
             deleteGroupOrDic() {
@@ -801,7 +918,7 @@ import axios from 'axios'
                     }).then((command) => {
                         if ('confirm' == command) {
                             axios({
-                                url: 'dicGroup/' + this.selectedGroup.id,
+                                url:this.baseUrl+ 'dicGroup/' + this.selectedGroup.id,
                                 method: 'delete'
                             }).then(res => {
                                 this.loadDicGroups();
@@ -818,7 +935,7 @@ import axios from 'axios'
                     }).then((command) => {
                         if ('confirm' == command) {
                             axios({
-                                url: 'dic/' + this.selectedDic.id,
+                                url:this.baseUrl+ 'dic/' + this.selectedDic.id,
                                 method: 'delete'
                             }).then(res => {
                                 this.loadDicGroups();
@@ -828,7 +945,11 @@ import axios from 'axios'
                         // 取消
                     })
                 } else {
-                    this.$message.error("请选择要删除的字典组或字典");
+                    this.$message({
+                        showClose: true,
+                        message: '请选择要删除的字典组或字典',
+                        type: 'warning'
+                    });
                 }
             },
 
@@ -838,11 +959,15 @@ import axios from 'axios'
             // 加载字典项
             loadItems() {
                 if (!this.selectedDic) {
-                    this.$message.error('请选择字典');
+                    this.$message({
+                        showClose: true,
+                        message: '请选择字典',
+                        type: 'warning'
+                    });
                     return;
                 }
                 axios({
-                    url: this.baseUrl+'dicItem',
+                    url:this.baseUrl+ 'dicItem',
                     method: 'get',
                     headers: {},
                     params: {
@@ -867,12 +992,16 @@ import axios from 'axios'
             // 加载标准字典
             loadStandardItems() {
                 if (!this.selectedDic) {
-                    this.$message.error('请选择字典');
+                    this.$message({
+                        showClose: true,
+                        message: '请选择字典',
+                        type: 'warning'
+                    });
                     return;
                 }
                 if (this.selectedDic.transferDicCode) {
                     axios({
-                        url: this.baseUrl+'dicItem/all',
+                        url:this.baseUrl+ 'dicItem/all',
                         method: 'get',
                         headers: {},
                         params: {
@@ -891,7 +1020,11 @@ import axios from 'axios'
             // 添加项
             addItem(command) {
                 if (!this.selectedDic) {
-                    this.$message.error('请选择字典');
+                    this.$message({
+                        showClose: true,
+                        message: '请选择字典',
+                        type: 'warning'
+                    });
                     return;
                 }
                 switch (command) {
@@ -914,7 +1047,11 @@ import axios from 'axios'
                         break;
                     case 'subItem':
                         if (!this.selectedItem) {
-                            this.$message.error('请选择字典项');
+                           this.$message({
+                                showClose: true,
+                                message: '请选择字典项',
+                                type: 'warning'
+                            });
                             return;
                         }
                         this.itemDialog.title = '新增子项';
@@ -957,7 +1094,7 @@ import axios from 'axios'
                 item.transferVersion = this.standardVersion;
 
                 axios({
-                    url: this.baseUrl+'dicItem',
+                    url:this.baseUrl+ 'dicItem',
                     method: 'put',
                     data: item
                 }).then(res => {
@@ -996,7 +1133,7 @@ import axios from 'axios'
                 switch (action) {
                     case 'edit':
                         axios({
-                            url: this.baseUrl+'dicItem',
+                            url:this.baseUrl+ 'dicItem',
                             method: 'put',
                             data: this.newItem
                         }).then(res => {
@@ -1012,7 +1149,7 @@ import axios from 'axios'
                                     this.newItem.parentCode = this.newItem.parent['key'] | null;
                                 }
                                 axios({
-                                    url: this.baseUrl+'dicItem',
+                                    url:this.baseUrl+ 'dicItem',
                                     method: 'post',
                                     data: this.newItem
                                 }).then(res => {
@@ -1042,7 +1179,7 @@ import axios from 'axios'
                 }).then((command) => {
                     if ('confirm' == command) {
                         axios({
-                            url: this.baseUrl+'dicItem/' + data.id,
+                            url:this.baseUrl+ 'dicItem/' + data.id,
                             method: 'delete'
                         }).then(res => {
                             this.loadItems();
@@ -1051,7 +1188,15 @@ import axios from 'axios'
                 }).catch((e) => {
                     // 取消
                 })
+            },
+            // 管理字典表格
+            handleEdit(index, row) {
+                console.log(index, row);
+            },
+            handleDelete(index, row) {
+                console.log(index, row);
             }
+
         },
         created() {
             // 初始化参数
@@ -1108,25 +1253,28 @@ import axios from 'axios'
     }
 </script>
 <style scoped>
-   .localDicPage{
+  .localDicPage{
 		padding:10px;
 		margin-top:10px;
-	}
+	}  
+    
     .dialogLabel label {
         line-height: 35px
     }
-   .rightCard{
-       min-height: calc(100vh - 145px);
-       /*max-height:calc(100vh - 180px);*/
-   }
-   .leftCard{
-       min-height: calc(100vh - 145px);
-       max-height:calc(100vh - 145px);
-   }
-     .el-tree {
-        max-height:calc(100vh - 250px);
-        overflow-x: auto;
-        overflow-y: auto;
+
+	.rightCard{
+		min-height: calc(100vh - 156px);
+		max-height:calc(100vh - 156px);
+		overflow: auto;
+	}
+	.leftCard{
+		min-height: calc(100vh - 180px);
+		max-height:calc(100vh - 156px);
+	}
+	  .el-tree {
+        max-height:calc(100vh - 260px);
+        min-height:calc(100vh - 260px);
+		overflow: auto;
     }
     .span-ellipsis {
         width: 100%;

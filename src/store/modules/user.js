@@ -7,7 +7,8 @@ const user = {
     name: '',
     avatar: '',
     roles: [],
-    RouterList: [] // 动态路由
+    RouterList: [],// 动态路由
+    permissions:[]
   },
 
   mutations: {
@@ -25,6 +26,9 @@ const user = {
     },
     set_router: (state, RouterList) => {
       state.RouterList = RouterList
+    },
+    set_permission:(state,permissions)=>{
+      state.permissions=permissions
     }
   },
 
@@ -36,8 +40,7 @@ const user = {
         login(username, userInfo.password)
           .then(response => {
             const data = response.content
-            debugger
-            this.$router.push({ path: '/prefix' })
+            // debugger
             setToken('admin')//存在cookie中
             commit('SET_TOKEN', 'admin')//存在vuex中
             resolve()
@@ -76,6 +79,9 @@ const user = {
     // 存储颗粒话权限
     setroles({ commit }, roleList) {
       commit('SET_ROLES', roleList)
+    },
+    setPermissions({commit},permissions){
+      commit("set_permission",permissions)
     },
     // 登出
     LogOut({ commit, state }) {

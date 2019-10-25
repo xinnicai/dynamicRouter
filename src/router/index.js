@@ -25,7 +25,7 @@ import Layout from '../views/layout/Layout'
 
 export const StaticRouterMap = [
   {
-    path: '/login',
+    path: '/',
     component: () => import('@/views/login/index'),
     hidden: true
   },
@@ -37,11 +37,11 @@ export const StaticRouterMap = [
   },
   { path: '/404', component: () => import('@/views/404'), hidden: true },
   {
-    path: '/',
+    path: '/dashboard',
     component: Layout,
-    redirect: '/dashboard',
+    // redirect: '/dashboard',
     name: 'Dashboard',
-    meta: { title: '主页', icon: 'example' },
+    meta: { title: '主页', icon: 'el-icon-s-home' },
     children: [
       {
         path: 'dashboard',

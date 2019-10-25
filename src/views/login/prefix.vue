@@ -18,7 +18,7 @@
             <el-main>
                 <el-row :gutter="16">
                     <div class="card-body">
-                        <el-col :span="5" v-for="item in roles">
+                        <el-col :span="5" v-for="item in roles" :key="item.code">
                             <el-card @click.native="choose(item.code)">
                                 <img src="./image/用户.png"/>
                                 <h3>{{item.name}}</h3>
@@ -34,7 +34,6 @@
 </template>
 
 <script>
-import { isvalidUsername } from '@/utils/validate'
 import axios from 'axios'
 export default {
   name: 'Login',
@@ -46,8 +45,8 @@ export default {
   watch: {},
   methods: {
      choose(obj) {
-                axios({
-                    url: 'current/chooseRole',
+                this.$axios({
+                    url: this.baseUrl+'current/chooseRole',
                     method: 'post',
                     headers: {},
                     data: {
@@ -56,8 +55,8 @@ export default {
                 }).then(res => {
                     let data = res.data;
                     if (data.success) {
-                        this.$router.push({ path: this.redirect || '/' })
-                        
+                        this.$router.push({ path: this.redirect || '/dashboard' })
+                        this.getPermissions()
                     } else {
                         if(!!data.errMsg){
                             this.$notify.error({
@@ -77,10 +76,10 @@ export default {
                 })
             },
             getRoles() {
-                axios({
-                    url: 'current/roles',
+                 this.$axios({
+                    url: this.baseUrl+'current/roles',
                     method: 'get',
-                    headers: {}
+                    // withCredentials:true
                 }).then(res => {
                     let data = res.data;
                     if (data.success) {
@@ -92,9 +91,23 @@ export default {
                         data.content.forEach(v => {
                             this.roles.push(v);
                         });
+                        console.log(this.roles)
                     }
                 })
-            }
+            },
+            getPermissions() {
+                axios({
+                    url: this.baseUrl+'current/activeRolePermissions',
+                    method: 'get',
+                    headers: {}
+                }).then(res => {
+                    let data = res.data;
+                    // debugger
+                    // if (data.success) {
+                    //     Vue.prototype.permissions = data.content;
+                    // }
+                })
+            },
   },
   mounted() {
         this.getRoles();

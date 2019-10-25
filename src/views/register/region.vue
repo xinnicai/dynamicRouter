@@ -6,7 +6,7 @@
                         <el-col :span="24">
                             <el-input placeholder="输入名称" style="width: 300px" v-model="queryName"></el-input>
                             <el-button icon="el-icon-search" type="primary" @click="loadRegions">搜索</el-button>
-                            <el-button icon="el-icon-plus" type="primary" style="margin-left: 10px" @click="showForm">
+                            <el-button icon="el-icon-plus" type="primary" style="margin-left: 10px" @click="showForm" v-if="hasPermission('region.add')">
                                 新增项
                             </el-button>
                         </el-col>
@@ -17,7 +17,7 @@
                                 style="width: 100%;margin-bottom: 20px;"
                                 row-key="id"
                                 border
-                                >
+                                default-expand-all>
                             <el-table-column
                                     prop="code"
                                     label="区划代码"
@@ -38,12 +38,12 @@
                                 <template slot-scope="scope">
                                     <el-button
                                             size="mini"
-                                            @click="showForm(scope.row)">编辑
+                                            @click="showForm(scope.row)" v-if="hasPermission('region.edit')">编辑
                                     </el-button>
                                     <el-button
                                             size="mini"
                                             type="danger"
-                                            @click="handleDelete(scope.row)">删除
+                                            @click="handleDelete(scope.row)" v-if="hasPermission('region.del')">删除
                                     </el-button>
                                 </template>
                             </el-table-column>
@@ -64,18 +64,18 @@
                 </el-card>
         </el-col>
         <!-- 弹窗 -->
-        <el-dialog :title="formTitle" :visible.sync="dialogFormVisible" width="65%" @close="cancel">
+       <el-dialog :title="formTitle" :visible.sync="dialogFormVisible" width="65%" @close="cancel">
             <el-form :model="region" :rules="formRules" ref="regionForm" label-width="100px" class="demo-ruleForm">
                 <el-row :gutter="10" class="dialogLabel">
                     <el-col :span="8">
                         <el-form-item label="代码" prop="code">
-                            <el-input auto-complete="off" style="width:150px" :disabled="formDisabled"
+                            <el-input autocomplete="off" style="width:150px" :disabled="formDisabled"
                                       v-model="region.code"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="名称" prop="name">
-                            <el-input auto-complete="off" style="width:150px" v-model="region.name"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="region.name"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
@@ -91,7 +91,7 @@
                 <el-row :gutter="10" class="dialogLabel">
                     <el-col :span="8">
                         <el-form-item label="其他代码" prop="otherCode">
-                            <el-input auto-complete="off" style="width:150px" v-model="region.otherCode"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="region.otherCode"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
@@ -120,30 +120,29 @@
                 </el-row>
                 <el-row :gutter="10" class="dialogLabel">
                     <el-col :span="8">
-                        <el-form-item label="城乡属性码" prop="cxsxm">
-                            <el-input auto-complete="off" style="width:150px" v-model="region.cxsxm"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="16">
                         <el-form-item label="城乡分类码" prop="cxsxm">
-                            <el-input auto-complete="off" style="width:150px" v-model="region.cxflm"></el-input>
+                            <el-select v-model="region.cxflm" placeholder="请选择城乡分类" style="width:150px">
+                                <el-option v-for="code in cxflmList" :label="code.text" :value="code.key"
+                                           :key="code.key"></el-option>
+                            </el-select>
                         </el-form-item>
                     </el-col>
-                </el-row>
-                <el-row :gutter="10" class="dialogLabel">
                     <el-col :span="8">
                         <el-form-item label="人口" prop="population">
-                            <el-input auto-complete="off" style="width:150px" v-model="region.population"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="region.population"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="面积（平方千米）" prop="area">
-                            <el-input auto-complete="off" style="width:150px" v-model="region.area"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="region.area"></el-input>
                         </el-form-item>
                     </el-col>
+                </el-row>
+                <el-row :gutter="10" class="dialogLabel">
+
                     <el-col :span="8">
                         <el-form-item label="描述" prop="description">
-                            <el-input auto-complete="off" style="width:150px" v-model="region.description"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="region.description"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -186,6 +185,7 @@
                 pageSize: 10,
                 total: 0,
                 regionLevels: [],//行政区划级别
+                cxflmList: [],//城乡分类
                 region: {
                     version: this.version
                 },
@@ -248,7 +248,7 @@
             // 加载字典版本
             // loadVersions() {
             //     axios({
-            //         url: '/version',
+            //         url:this.baseUrl+ '/version',
             //         method: 'get',
             //         headers: {},
             //         params: {
@@ -276,7 +276,7 @@
             },
             loadRegions() {
                 axios({
-                    url: this.baseUrl+'region',
+                    url:this.baseUrl+ 'region',
                     method: 'get',
                     headers: {},
                     params: {
@@ -302,7 +302,7 @@
                     if (valid) {
                         if (!!this.region.id) {
                             axios({
-                                url: this.baseUrl+'region',
+                                url:this.baseUrl+ 'region',
                                 method: 'put',
                                 headers: {},
                                 data: this.region
@@ -334,7 +334,7 @@
                             })
                         } else {
                             axios({
-                                url: this.baseUrl+'region',
+                                url:this.baseUrl+ 'region',
                                 method: 'post',
                                 headers: {},
                                 data: this.region
@@ -369,7 +369,7 @@
                 })
             }, loadRegionTree() {
                 axios({
-                    url: this.baseUrl+'region/tree',
+                    url:this.baseUrl+ 'region/tree',
                     method: 'get',
                     headers: {},
                     params: {
@@ -386,7 +386,7 @@
             },
             loadDics(dicCode, dics) {
                 axios({
-                    url: this.baseUrl+'dicItem/tree',
+                    url:this.baseUrl+ 'dicItem/tree',
                     method: 'get',
                     headers: {},
                     params: {
@@ -403,7 +403,7 @@
 
             }, deleteData(id) {//删除
                 axios({
-                    url: this.baseUrl+'region/' + id,
+                    url:this.baseUrl+ 'region/' + id,
                     method: 'delete',
                     headers: {}
                 }).then(res => {
@@ -458,7 +458,8 @@
             // if (this.version) {
             this.loadRegions();
             this.loadRegionTree();
-            this.loadDics('regionLevels', this.regionLevels);
+            this.loadDics('region_level', this.regionLevels);
+            this.loadDics('city_classify', this.cxflmList);
             // }
         },
         watch: {
@@ -466,7 +467,7 @@
             version: function () {
                 this.loadRegions();
                 this.loadRegionTree();
-                this.loadDics('regionLevels', this.regionLevels);
+                this.loadDics('region_level', this.regionLevels);
             },
             // 字典（组）名称
             groupOrDicName: function (val) {
@@ -482,12 +483,12 @@
 
 
     .regionPage{
-        height: 96%;
+        height: 100%;
         overflow: auto;
     }
     .card_height{
-        min-height: calc(100vh - 110px);
-        
+        min-height: calc(100vh - 115px);
+        max-height: calc(100vh - 115px);
     }
     .el-table{
         overflow: auto;

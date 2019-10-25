@@ -9,7 +9,7 @@
                     <!--                    <el-input placeholder="输入名称" style="width: 200px"></el-input>-->
                     <el-button icon="el-icon-search" type="primary" @click="getTableData">搜索</el-button>
                     <el-button icon="el-icon-plus" type="primary" style="margin-left: 10px"
-                               @click="dialogForm2Visible=true" >
+                               @click="dialogForm2Visible=true" v-if="hasPermission('role.add')">
                         新增项
                     </el-button>
                 </el-col>
@@ -20,7 +20,7 @@
                         style="width: 100%;margin-bottom: 20px;"
                         row-key="id"
                         border
-                        >
+                        default-expand-all>
                     <el-table-column
                             prop="name"
                             label="权限名称"
@@ -49,12 +49,12 @@
                         <template slot-scope="scope">
                             <el-button
                                     size="mini"
-                                    @click="showForm(scope.row)">编辑
+                                    @click="showForm(scope.row)" v-if="hasPermission('role.edit')">编辑
                             </el-button>
                             <el-button
                                     size="mini"
                                     type="danger"
-                                    @click="handleDelete(scope.row)">删除
+                                    @click="handleDelete(scope.row)" v-if="hasPermission('role.del')">删除
                             </el-button>
                         </template>
                     </el-table-column>
@@ -81,7 +81,7 @@
                 <el-form-item label="角色名称" prop="name">
                     <el-input v-model="newOrg.name"></el-input>
                 </el-form-item>
-                <el-form-item label="上级机构">
+                <el-form-item label="所属机构">
                     <treeselect v-model="newOrg.organ"
                                 :clearable="true"
                                 :searchable="true"
@@ -89,7 +89,7 @@
                                 :options="parentOrgs"
                                 :limit="3"
                                 :max-height="200"
-                                :placeholder="'请选择上级机构'"
+                                :placeholder="'请选择所属机构'"
                                 style="width:100%"
                                 :noChildrenText="' '"
                     />
@@ -160,7 +160,7 @@
                 <el-form-item label="角色名称" prop="name">
                     <el-input v-model="updateOrg.name"></el-input>
                 </el-form-item>
-                <el-form-item label="上级机构">
+                <el-form-item label="所属机构">
                     <treeselect v-model="updateOrg.organ"
                                 :clearable="true"
                                 :searchable="true"
@@ -168,7 +168,7 @@
                                 :options="parentOrgs"
                                 :limit="3"
                                 :max-height="200"
-                                :placeholder="'请选择上级机构'"
+                                :placeholder="'请选择所属机构'"
                                 style="width:100%"
                                 :noChildrenText="' '"
                     />
@@ -237,11 +237,11 @@
 <script>
 	import axios from 'axios'
 	export default {
-        data: function () {
+         data: function () {
             // 验证code唯一
             var validatorCode = (rule, value, callback) => {
                 axios({
-                    url: this.baseUrl+'role/isExist',
+                    url:this.baseUrl+ 'role/isExist',
                     method: 'post',
                     data: {
                         code: value,
@@ -285,11 +285,16 @@
                 },
                 dialogForm2Visible: false,
                 newOrg: {},
-                updateOrg: {},
+                updateOrg: {
+                    code:'',
+                    name:'',
+                    organ:'',
+                    id:''
+                },
                 // 权限表数据
                 permissionCodes: [],
                 resourceCodes: [],
-                parentOrgs: [], //上级机构
+                parentOrgs: [], //所属机构
                 version: 'system'
             }
         },
@@ -347,7 +352,7 @@
             // 获取权限列表信息
             loadParentOotions() {
                 axios({
-                    url: this.baseUrl+'resource/bimp/tree',
+                    url:this.baseUrl+ 'resource/bimp/tree',
                     method: 'get',
                     headers: {},
                 }).then(res => {
@@ -355,7 +360,6 @@
                     if (data.success) {
                         this.roleTableData = []
                         this.roleTableData = this.convertPermissionData(data.content, this.roleTableData)
-                        console.log(this.roleTableData)
                     }
                 })
             },
@@ -403,7 +407,7 @@
                     this.getPermissionCode(this.roleTableData)
                     if (valid && flag === 'add') {
                         axios({
-                            url: this.baseUrl+'role',
+                            url:this.baseUrl+ 'role',
                             method: 'post',
                             headers: '',
                             data: {
@@ -422,19 +426,19 @@
                             if (data.success) {
                                 this.$notify({
                                     title: '角色管理-新增',
-                                    message: '新增成功原因',
+                                    message: '新增成功',
                                     type: 'success'
                                 });
                                 this.dialogForm2Visible = false;
                                 this.getTableData()
                             } else {
-                                if(!!data.errMsg){
+                                if (!!data.errMsg) {
                                     this.$notify.error({
                                         title: '角色管理-新增',
-                                        message: '新增失败原因'+data.errMsg,
+                                        message: '新增失败原因' + data.errMsg,
                                         duration: 0
                                     });
-                                }else{
+                                } else {
                                     this.$notify.error({
                                         title: '角色管理-新增',
                                         message: '新增失败!',
@@ -448,7 +452,7 @@
                     }
                     if (valid && flag === 'update') {
                         axios({
-                            url: this.baseUrl+'role',
+                            url:this.baseUrl+ 'role',
                             method: 'put',
                             headers: '',
                             data: {
@@ -476,13 +480,13 @@
                                 this.getTableData()
                             } else {
                                 this.dialogFormVisible = false;
-                                if(!!data.errMsg){
+                                if (!!data.errMsg) {
                                     this.$notify.error({
                                         title: '角色管理-编辑',
-                                        message: '编辑失败原因'+data.errMsg,
+                                        message: '编辑失败原因' + data.errMsg,
                                         duration: 0
                                     });
-                                }else{
+                                } else {
                                     this.$notify.error({
                                         title: '角色管理-编辑',
                                         message: '编辑失败!',
@@ -515,7 +519,7 @@
             // 获取列表数据
             getTableData() {
                 axios({
-                    url: this.baseUrl+'role',
+                    url:this.baseUrl+ 'role',
                     method: 'get',
                     headers: {},
                     params: {
@@ -530,7 +534,6 @@
                         let content = data.content;
                         this.tableData.splice(0, this.tableData.length);
                         content.content.forEach(g => this.tableData.push(g));
-                        console.log(this.tableData)
                         this.total = content.totalElements;
                     }
                 })
@@ -543,7 +546,7 @@
                 this.updateOrg.organ = data.organ;
                 this.updateOrg['id'] = data.id
                 axios({
-                    url: this.baseUrl+'role/permission',
+                    url:this.baseUrl+ 'role/permission',
                     method: 'post',
                     headers: '',
                     data: {
@@ -595,7 +598,7 @@
             // 删除角色
             deleteData(id) {
                 axios({
-                    url: this.baseUrl+'role/' + id,
+                    url:this.baseUrl+ 'role/' + id,
                     method: 'delete',
                     headers: {}
                 }).then(res => {
@@ -608,13 +611,13 @@
                             type: 'success'
                         });
                     } else {
-                        if(!!data.errMsg){
+                        if (!!data.errMsg) {
                             this.$notify.error({
                                 title: '角色管理-删除',
-                                message: '删除失败原因'+data.errMsg,
+                                message: '删除失败原因' + data.errMsg,
                                 duration: 0
                             });
-                        }else{
+                        } else {
                             this.$notify.error({
                                 title: '角色管理-删除',
                                 message: '删除失败!',
@@ -624,10 +627,10 @@
                     }
                 })
             },
-            // 获取上级机构数据
+            // 获取所属机构数据
             loadOrgTree() {
                 axios({
-                    url: this.baseUrl+'organization/' + this.version + '/tree',
+                    url:this.baseUrl+ 'organization/' + this.version + '/tree',
                     method: 'get',
                     headers: {}
                 }).then(res => {
@@ -670,6 +673,8 @@
 </script>
 <style scoped>
     .rolePage {
+        padding: 10px;
+        margin-top: 10px;
         font-size: 14px;
         height: 96%;
         overflow: auto;
@@ -684,6 +689,6 @@
     }
 
     .card_height {
-        min-height: calc(100vh - 110px);
+        min-height: calc(100vh - 115px);
     }
 </style>

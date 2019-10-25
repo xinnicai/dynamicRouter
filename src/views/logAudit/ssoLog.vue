@@ -7,7 +7,7 @@
                     <el-input placeholder="搜索登录账号" style="width: 200px" v-model="queryName"></el-input>
                     <label >动作 </label>
 <!--                            <el-input placeholder="搜索动作" style="width: 300px" v-model="actionName"></el-input>-->
-                    <el-select clearable="true" v-model="action" placeholder="请选择动作">
+                    <el-select :clearable="true" v-model="action" placeholder="请选择动作">
                         <el-option v-for="action in actions" :label="action.audActionName" :value="action.audAction"
                                     :key="action.audAction"></el-option>
                     </el-select>

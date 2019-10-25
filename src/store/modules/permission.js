@@ -13,6 +13,7 @@ function hasPermission(roles, route) {
   }
 }
 
+
 /**
  * Filter asynchronous routing tables by recursion
  * @param routes AsyncRouterMap

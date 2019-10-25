@@ -2,7 +2,33 @@ import axios from 'axios'
 import { Message, MessageBox } from 'element-ui'
 import store from '../store'
 import { getToken } from '@/utils/auth'
-
+axios.defaults.withCredentials=true
+// axios.defaults.retry=4;
+// axios.defaults.retryDelay=1000;
+// axios.interceptors.response.use(undefined, function axiosRetryInterceptor(err) {
+//   var config = err.config;
+//   // 如果config不存在或未设置重试选项，请拒绝
+//   if(!config || !config.retry) return Promise.reject(err);
+//   // 设置变量跟踪重试次数
+//   config.__retryCount = config.__retryCount || 0;
+//   // 检查是否已经达到最大重试总次数
+//   if(config.__retryCount >= config.retry) {
+//    // 抛出错误信息
+//    return Promise.reject(err);
+//   }
+//   // 增加请求重试次数
+//   config.__retryCount += 1;
+//   // 创建新的异步请求
+//   var backoff = new Promise(function(resolve) {
+//    setTimeout(function() {
+//     resolve();
+//    }, config.retryDelay || 1);
+//   });
+//   // 返回axios信息，重新请求
+//   return backoff.then(function() {
+//    return axios(config);
+//   });
+//  });
 // 创建axios实例
 const service = axios.create({
   baseURL: process.env.BASE_API, // api 的 base_url
@@ -12,9 +38,9 @@ const service = axios.create({
 // request拦截器
 service.interceptors.request.use(
   config => {
-    debugger
+    // config.headers['Cookie']='JSESSIONID=64BD5A3E1063AD1A8A709A61CEA1D411; portal=09F631A2B7A6F4A9360A9167241C3980'
     if (store.getters.token) {
-      config.headers['X-Token'] = getToken() // 让每个请求携带自定义token 请根据实际情况自行修改
+      // config.headers['X-Token'] = getToken() // 让每个请求携带自定义token 请根据实际情况自行修改
     }
     return config
   },

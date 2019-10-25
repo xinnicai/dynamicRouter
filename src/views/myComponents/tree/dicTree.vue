@@ -292,7 +292,11 @@ export default {
         // 添加字典或字典组
         addGroupOrDic(command) {
             if (!this.selectedGroup) {
-                this.$message.error('请选择所属分组');
+                this.$message({
+                    showClose: true,
+                    message: '请选择所属分组',
+                    type: 'warning'
+                });
                 return;
             }
             switch (command) {
@@ -357,7 +361,11 @@ export default {
 	                    this.dicDialog.show = true;
 	                })
 	            } else {
-	                this.$message.error("请先选择字典或字典组");
+                    this.$message({
+                        showClose: true,
+                        message: '请先选择字典或字典组',
+                        type: 'warning'
+                    });
 	            }
 	        },
 	        deleteGroupOrDic() {
@@ -396,7 +404,11 @@ export default {
 	                    // 取消
 	                })
 	            } else {
-	                this.$message.error("请选择要删除的字典组或字典");
+                    this.$message({
+                        showClose: true,
+                        message: '请选择要删除的字典组或字典',
+                        type: 'warning'
+                    });
 	            }
             },
         // 添加字典组

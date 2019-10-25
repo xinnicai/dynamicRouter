@@ -68,6 +68,62 @@ export const USER_CONFIG = {
       create_time: '',
       expand: '',
       roleIdList: []
+    },
+    headConfig:{
+      gridConfig: [
+        {label: '源版本', prop: 'sourceVersion',type:'select'},
+        {label: '新版本',prop:'version',type:'input'},
+        {label: '说明', prop: 'description',type:'input'},
+        {
+        label: '激活状态', prop: 'active', render: (h, params) => {
+          if(params.row.active === true){
+            return h('el-tag', {
+              props:{
+                size:'mini',
+                type:'success'
+              }
+            },'已激活');
+          }else {
+            return h('el-tag', {
+              props:{
+                size:'mini',
+                type:'warning'
+              }
+            },'未激活');
+          }
+        },type:'active'
+      },
+        {label: '创建时间', prop: 'createDate'},
+      ],
+      userService:'version',
+      gridBtnConfig: {
+        create: true, update: false,save:true, delete: true, view: false,
+        find:false,
+        addItem:false,
+        expands: [
+          { name: '下载按钮', emitName: 'download', type: 'primary' }
+        ]},
+      tableParams:{
+        type:'standard',
+        page:1,
+        limit:10
+      },
+      versionsParams:{
+        type:'standard',
+      },
+      pushTableData:{
+        module:'standard',
+        version:'',
+        description:'',
+        active:false,
+        sourceVersion:'',
+        status:'1',
+        scope:null,
+        dataType:'new',
+        save:true
+      
+      }
     }
+    
   };
   

@@ -120,6 +120,14 @@ export default {
     $route: {
       handler(route) {
         this.redirect = route.query && route.query.redirect
+        if(route.path === '/login') {
+             this.formLabelAlign={
+              account: '',
+              password: '',
+              rememberMe: false
+          }
+        }
+     
       },
       immediate: true
     }
@@ -137,9 +145,8 @@ export default {
         if (valid) {
           this.loading = true
           this.$store.dispatch('Login', this.formLabelAlign).then(() => {
-            debugger
             this.loading = false
-            this.$router.push({ path: '/prefix' })
+            this.$router.push({ path: this.redirect || '/prefix' })
           }).catch(() => {
             this.loading = false
           })

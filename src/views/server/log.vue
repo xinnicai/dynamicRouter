@@ -2,7 +2,7 @@
     <div>
 		<el-row :gutter="12">
 			<el-col :span="5">
-				 <el-card class="box-card">
+				 <el-card class="card_height">
                     <el-row style="margin-top:10px">
                         <el-col :span="24">
                             <el-input v-model="filterGroupName" placeholder="输入名称" style="width: 100%"></el-input>
@@ -22,13 +22,41 @@
                 </el-card>
 			</el-col>
 			<el-col :span="19">
-				 <el-card class="box-card">
+				<el-card class="card_height">
                     <el-row>
                         <el-col :span="24">
+                            <label >服务名称 </label>
+                            <el-select v-model="logItemName" placeholder="请选择">
+                                <el-option
+                                        v-for="item in dicItemsData.items"
+                                        :key="item.publishUrl"
+                                        :label="item.text"
+                                        :value="item.publishUrl">
+                                </el-option>
+                            </el-select>
+                            <label >请求内容 </label>
                             <el-input placeholder="输入搜索信息" v-model="logItemsData.searchName"
                                       style="width: 300px"></el-input>
+
+                            <label >日志时间  从</label>
+                            <el-date-picker
+                                    v-model="startTime"
+                                    type="datetime"
+                                    format="yyyy-MM-dd HH:mm:ss"
+                                    value-format="yyyy-MM-dd HH:mm:ss"
+                                    placeholder="请选择" style="width:200px">
+                            </el-date-picker>
+                            <label>至</label>
+                            <el-date-picker
+                                    v-model="endTime"
+                                    type="datetime"
+                                    format="yyyy-MM-dd HH:mm:ss"
+                                    value-format="yyyy-MM-dd HH:mm:ss"
+                                    placeholder="请选择" style="width:200px">
+                            </el-date-picker>
                             <el-button icon="el-icon-search" type="primary" @click="loadLog">搜索</el-button>
-                            <el-dropdown trigger="click">
+
+                           <!-- <el-dropdown trigger="click">
                                 <el-button type="primary" @click="selectedDic2">
                                     选择服务<i class="el-icon-arrow-down"></i>
                                 </el-button>
@@ -37,9 +65,13 @@
                                         <el-dropdown-item  @click.native="loadLogPara(item.publishUrl)">{{ item.text }}</el-dropdown-item>
                                     </template>
                                 </el-dropdown-menu>
-                            </el-dropdown>
+                            </el-dropdown>-->
+
+
                         </el-col>
                     </el-row>
+
+
 
                     <el-row style="margin-top:10px">
                         <el-table
@@ -49,6 +81,7 @@
                                 highlight-current-row
                                 @current-change="selectItem"
                                 border
+                                default-expand-all
                                 :tree-props="{children: 'children', hasChildren: 'hasChildren'}">
                             <el-table-column
                                     prop="serverName"
@@ -64,8 +97,15 @@
                             </el-table-column>
                             <el-table-column
                                     prop="client"
-                                    label="客户端IP"
-                                    >
+                                    label="客户端IP">
+                            </el-table-column>
+                            <el-table-column
+                                    prop="clientName"
+                                    label="请求用户">
+                            </el-table-column>
+                            <el-table-column
+                                    prop="orgName"
+                                    label="请求机构">
                             </el-table-column>
                             <el-table-column
                                     prop="status"
@@ -146,6 +186,9 @@
             };
     
             return {
+
+                startTime:null,
+                endTime:null,
                 /**
                  *  头部数据
                  * */
@@ -219,7 +262,7 @@
             // 加载字典分组树
             loadDicGroups() {
                 axios({
-                    url: this.baseUrl+'GroupCtg/tree',
+                    url:this.baseUrl+ 'GroupCtg/tree',
                     method: 'get',
                     headers: {},
                     params: {
@@ -250,7 +293,11 @@
             },
             selectedDic2() {
                 if (!this.selectedGroup) {
-                    this.$message.error('请选择服务组');
+                    this.$message({
+                        showClose: true,
+                        message: '请选择服务组',
+                        type: 'warning'
+                    });
                     return;
                 }
             },
@@ -261,15 +308,16 @@
             // 加载字典项
             loadItems() {
                 if (!this.selectedGroup) {
-                    this.$message.error('请选择服务组');
-                    return;
+                    dicCode ="root";
+                } else {
+                    dicCode = this.selectedGroup.code;
                 }
                 axios({
-                    url: this.baseUrl+'endpoint',
+                    url:this.baseUrl+ 'endpoint',
                     method: 'get',
                     headers: {},
                     params: {
-                        dicCode: this.selectedGroup.code,
+                        dicCode:dicCode,
                         text: this.dicItemsData.searchName,
                         sort: [],
                         page: this.dicItemsData.currentPage,
@@ -293,15 +341,17 @@
             /**
              *
              */
-            // 加载字典项
+            // 加载日志
             loadLog() {
                 axios({
-                    url: this.baseUrl+'serverlog',
+                    url:this.baseUrl+ 'serverlog',
                     method: 'get',
                     headers: {},
                     params: {
                         serverName: this.logItemName,
                         message: this.logItemsData.searchName,
+                        endTime:this.endTime,
+                        startTime:this.startTime,
                         page: this.logItemsData.currentPage,
                         limit: this.logItemsData.limit
                     }
@@ -339,7 +389,8 @@
         created() {
             // 初始化参数
                 this.loadDicGroups();
-                
+                this.loadItems();
+                this.loadLog();
                 
         },
         watch: {
@@ -380,7 +431,7 @@
     }
 </script>
 <style scoped>
-    body {
+     body {
         display: block;
         margin: 0px;
         padding: 10px 4px;
@@ -407,9 +458,17 @@
     .dialogLabel label {
         line-height: 35px
     }
-    .box-card{
-		min-height: calc(100vh - 110px);
-	}
+   .card_height {
+        min-height: calc(100vh - 115px);
+        max-height: calc(100vh - 115px);
+        overflow-x: hidden;
+        overflow-y: scroll;
+    }
+	.el-tree {
+        max-height: calc(100vh - 195px);
+        overflow-x: auto;
+        overflow-y: auto;
+    }
      
 </style>
 

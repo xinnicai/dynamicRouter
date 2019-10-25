@@ -1,7 +1,7 @@
 <template>
     <div class="settingPage">
         <el-col :span="24">
-            <el-card class="box-card card_height">
+           <el-card class="box-card card_height">
                 <div class="form_title"><span>基本设置</span></div>
                 <el-form ref="form" :model="form" label-width="80px" style="width:60%;">
                     <el-form-item label="平台名称">
@@ -20,7 +20,7 @@
                                        :value="code.id"
                                        :key="code.id" class="imgOption">
                                 <el-col :span="12">
-                                    <img class="avatar" :src="'http://localhost:8081/bimp/config/'+code.id+'/file'" style="height:36px;">
+                                    <img class="avatar"  :src="baseUrl+'config/'+code.id+'/file'" style="height:36px;">
                                 </el-col>
                                 <el-col :span="12" style="text-align: right;">
                                     <span>{{!!code.text?code.text:code.fileName}}</span>
@@ -52,7 +52,8 @@
                                        :value="code.id"
                                        :key="code.id" class="imgOption">
                                        <el-col :span="12">
-                                           <img class="avatar" :src="'http://localhost:8081/bimp/config/'+code.id+'/file'" style="height:36px;">
+                                           <!-- <img class="avatar" :src="'http://localhost:8081/bimp/config/'+code.id+'/file'" style="height:36px;"> -->
+                                           <img class="avatar" :src="baseUrl+'config/'+code.id+'/file'" style="height:36px;">
                                        </el-col>
                                        <el-col :span="12" style="text-align: right;">
                                            <span>{{!!code.text?code.text:code.fileName}}</span>
@@ -92,7 +93,7 @@
 <script>
 	import axios from 'axios'
 	export default {
-        data() {
+       data() {
             return {
                 fileList: [],
                 form: {
@@ -146,7 +147,7 @@
                 // this.$refs.selectBackground.$el.children[0].children[1].setAttribute('style','background:url('+ path +') no-repeat;color:#fff');      
                 if (!!this.form.background) {
                     axios({
-                        url: this.baseUrl+'config/active',
+                        url:this.baseUrl+ 'config/active',
                         method: 'post',
                         headers: {},
                         data: {
@@ -174,7 +175,7 @@
             chooseLogo() {//选择logo
                 if (!!this.form.logo) {
                     axios({
-                        url: this.baseUrl+'config/active',
+                        url:this.baseUrl+ 'config/active',
                         method: 'post',
                         headers: {},
                         data: {
@@ -202,7 +203,7 @@
             getConfig(code, objs) {
                 if (!!code) {
                     axios({
-                        url: this.baseUrl+'config/sample',
+                        url:this.baseUrl+ 'config/sample',
                         method: 'post',
                         headers: {},
                         data: {
@@ -222,7 +223,7 @@
             saveTitle() {//保存标题
                 if (!!this.form.title) {
                     axios({
-                        url: this.baseUrl+'config/saveValue',
+                        url:this.baseUrl+ 'config/saveValue',
                         method: 'post',
                         headers: {},
                         data: {
@@ -297,7 +298,7 @@
             },
             getAllConfig() {//获取所有配置
                 axios({
-                    url: this.baseUrl+'config/all',
+                    url:this.baseUrl+ 'config/all',
                     method: 'get',
                     headers: {}
                 }).then(res => {
@@ -358,10 +359,15 @@
 </script>
 <style>
     .settingPage {
-        height: 96%;
+        /* padding: 10px;
+        margin-top: 10px; */
+        height: 97%;
         overflow: auto;
     }
-
+    .card_height{
+        min-height: calc(100vh - 122px);
+    }
+    
     .form_title {
         color: rgba(0, 0, 0, 0.85);
         font-size: 20px;

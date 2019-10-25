@@ -29,7 +29,7 @@
                         <el-col :span="24">
                             <el-input placeholder="输入名称" style="width: 300px" v-model="queryName"></el-input>
                             <el-button icon="el-icon-search" type="primary" @click="loadPersons">搜索</el-button>
-                            <el-button icon="el-icon-plus" type="primary" style="margin-left: 10px" @click="showForm">
+                            <el-button icon="el-icon-plus" type="primary" style="margin-left: 10px" @click="showForm" v-if="hasPermission('person.add')">
                                 新增项
                             </el-button>
                         </el-col>
@@ -39,7 +39,8 @@
                                 :data="tableData"
                                 style="width: 100%;margin-bottom: 20px;"
                                 row-key="id"
-                                border>
+                                border
+                                default-expand-all>
                             <el-table-column
                                     prop="id"
                                     label="人员编号"
@@ -60,18 +61,18 @@
                                 <template slot-scope="scope">
                                     <el-button
                                             size="mini"
-                                            @click="showForm(scope.row)">编辑
+                                            @click="showForm(scope.row)" v-if="hasPermission('person.edit')">编辑
                                     </el-button>
                                     <el-button
                                             size="mini"
                                             type="danger"
-                                            @click="handleDelete(scope.row)">删除
+                                            @click="handleDelete(scope.row)" v-if="hasPermission('person.del')">删除
                                     </el-button>
-                                    <el-button
-                                            size="mini"
-                                            type="primary"
-                                            @click="showUserForm(scope.row)">账户
-                                    </el-button>
+<!--                                    <el-button-->
+<!--                                            size="mini"-->
+<!--                                            type="primary"-->
+<!--                                            @click="showUserForm(scope.row)">账户-->
+<!--                                    </el-button>-->
                                 </template>
                             </el-table-column>
                         </el-table>
@@ -91,13 +92,13 @@
                 </el-card>
 			</el-col>
 		</el-row>
-	     <el-dialog :title="formTitle" :visible.sync="userFormVisible" width="65%">
+	      <el-dialog :title="formTitle" :visible.sync="userFormVisible" width="65%">
             <el-form :model="user"  :rules="rules" ref="userForm" label-width="100px" class="demo-ruleForm">
                 <el-row :gutter="10" class="dialogLabel">
                     <el-col :span="8">
                         <el-col :span="15">
                             <el-form-item label="登录账号" prop="userName">
-                            <el-input auto-complete="off" style="width:150px" v-model="user.userName"
+                            <el-input autocomplete="off" style="width:150px" v-model="user.userName"
                                       :disabled="formDisabled"></el-input>
                             </el-form-item>
                         </el-col>
@@ -120,14 +121,14 @@
                     <el-col :span="8">
                         <el-col :span="15">
                             <el-form-item label="登录密码" prop="password">
-                            <el-input  auto-complete="off" style="width:150px" v-model="user.password" show-password></el-input>
+                            <el-input  autocomplete="off" style="width:150px" v-model="user.password" show-password></el-input>
                             </el-form-item>
                         </el-col>
                     </el-col>
                     <el-col :span="8">
                         <el-col :span="15">
                             <el-form-item label="确认密码" prop="repeat">
-                            <el-input  auto-complete="off" style="width:150px" v-model="user.repeat" show-password></el-input>
+                            <el-input  autocomplete="off" style="width:150px" v-model="user.repeat" show-password></el-input>
                             </el-form-item>
                         </el-col>
                     </el-col>
@@ -145,12 +146,12 @@
                 <el-row :gutter="10" class="dialogLabel">
                     <el-col :span="8">
                         <el-form-item label="人员姓名" prop="name">
-                            <el-input auto-complete="off" style="width:150px" v-model="person.name"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="person.name"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="英文姓名" prop="enname">
-                            <el-input auto-complete="off" style="width:150px" v-model="person.enname"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="person.enname"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
@@ -170,7 +171,7 @@
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="证件号码" prop="cardNo">
-                            <el-input auto-complete="off" style="width:150px" v-model="person.cardNo"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="person.cardNo"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -216,17 +217,17 @@
                 <el-row :gutter="10" class="dialogLabel">
                     <el-col :span="8">
                         <el-form-item label="国籍" prop="nationality">
-                            <el-input auto-complete="off" style="width:150px" v-model="person.nationality"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="person.nationality"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="籍贯" prop="hometown">
-                            <el-input auto-complete="off" style="width:150px" v-model="person.hometown"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="person.hometown"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="执业证书编码" prop="certificateNum">
-                            <el-input auto-complete="off" style="width:150px" v-model="person.certificateNum"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="person.certificateNum"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -289,19 +290,19 @@
                 <el-row :gutter="10" class="dialogLabel">
                     <el-col :span="8">
                         <el-form-item label="职称代码" prop="professionalCode">
-                            <el-input auto-complete="off" style="width:150px"
+                            <el-input autocomplete="off" style="width:150px"
                                       v-model="person.professionalCode"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="执业地点" prop="certifiyAddress">
-                            <el-input auto-complete="off" style="width:150px"
+                            <el-input autocomplete="off" style="width:150px"
                                       v-model="person.certifiyAddress"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="执业范围" prop="certifiyScope">
-                            <el-input auto-complete="off" style="width:150px" v-model="person.certifiyScope"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="person.certifiyScope"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -317,7 +318,7 @@
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="医师执业范围" prop="operationScope">
-                            <el-input auto-complete="off" style="width:150px" v-model="person.operationScope"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="person.operationScope"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
@@ -329,19 +330,19 @@
                 <el-row :gutter="10" class="dialogLabel">
                     <el-col :span="8">
                         <el-form-item label="电子邮箱" prop="email">
-                            <el-input auto-complete="off" style="width:150px" v-model="person.email"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="person.email"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="办公室电话" prop="officeTel">
-                            <el-input auto-complete="off" style="width:150px" v-model="person.officeTel"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="person.officeTel"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="10" class="dialogLabel">
                     <el-col :span="8">
                         <el-form-item label="手机号码" prop="mobile">
-                            <el-input auto-complete="off" style="width:150px" v-model="person.mobile"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="person.mobile"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
@@ -388,17 +389,17 @@
                 <el-row :gutter="10" class="dialogLabel">
                     <el-col :span="8">
                         <el-form-item label="地址" prop="address">
-                            <el-input auto-complete="off" style="width:150px" v-model="person.address"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="person.address"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="人员类别" prop="category">
-                            <el-input auto-complete="off" style="width:150px" v-model="person.category"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="person.category"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="发证机构" prop="check_org">
-                            <el-input auto-complete="off" style="width:150px" v-model="person.check_org"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="person.check_org"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -422,7 +423,7 @@
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="拼音助记" prop="pycode">
-                            <el-input :disabled="true" auto-complete="off" style="width:150px"
+                            <el-input :disabled="true" autocomplete="off" style="width:150px"
                                       v-model="person.pycode"></el-input>
                         </el-form-item>
                     </el-col>
@@ -438,19 +439,19 @@
 <!--                    </el-col>-->
 <!--                    <el-col :span="8">-->
 <!--                        <el-form-item label="审核意见" prop="opinion">-->
-<!--                            <el-input auto-complete="off" style="width:150px" v-model="person.opinion"></el-input>-->
+<!--                            <el-input autocomplete="off" style="width:150px" v-model="person.opinion"></el-input>-->
 <!--                        </el-form-item>-->
 <!--                    </el-col>-->
 <!--                    <el-col :span="8">-->
 <!--                        <el-form-item label="综合评价" prop="summary">-->
-<!--                            <el-input auto-complete="off" style="width:150px" v-model="person.summary"></el-input>-->
+<!--                            <el-input autocomplete="off" style="width:150px" v-model="person.summary"></el-input>-->
 <!--                        </el-form-item>-->
 <!--                    </el-col>-->
 <!--                </el-row>-->
                 <el-row :gutter="10" class="dialogLabel">
                     <el-col :span="8">
                         <el-form-item label="备注" prop="remark">
-                            <el-input auto-complete="off" style="width:150px" v-model="person.remark"></el-input>
+                            <el-input autocomplete="off" style="width:150px" v-model="person.remark"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -473,14 +474,14 @@
                     <el-button type="primary" @click="save()">提 交</el-button>
                 </el-form-item>
             </el-form>
-        </el-dialog>        
+        </el-dialog>
 	</div>
 </template>
 
 <script>
 	import axios from 'axios'
 	export default {
-        data: function () {
+       data: function () {
             return {
                 // 字典组或字典名称
                 groupOrDicName: null,
@@ -630,7 +631,7 @@
             // 加载字典版本
             loadVersions() {
                 axios({
-                    url: this.baseUrl+'version',
+                    url:this.baseUrl+ 'version',
                     method: 'get',
                     headers: {},
                     params: {
@@ -658,7 +659,7 @@
             },
             loadPersons() {
                 axios({
-                    url: this.baseUrl+'personnel',
+                    url:this.baseUrl+ 'personnel',
                     method: 'get',
                     headers: {},
                     params: {
@@ -686,7 +687,7 @@
                     if (valid) {
                         if (!!this.person.id) {
                             axios({
-                                url: this.baseUrl+'personnel',
+                                url:this.baseUrl+ 'personnel',
                                 method: 'put',
                                 headers: {},
                                 data: this.person
@@ -718,7 +719,7 @@
                             })
                         } else {
                             axios({
-                                url: this.baseUrl+'personnel',
+                                url:this.baseUrl+ 'personnel',
                                 method: 'post',
                                 headers: {},
                                 data: this.person
@@ -764,7 +765,7 @@
                 }
 
                 axios({
-                    url: this.baseUrl+'portalUser/bind',
+                    url:this.baseUrl+ 'portalUser/bind',
                     method: 'post',
                     data: {
                         "localUserId": this.personId,
@@ -800,7 +801,7 @@
             },
             getRoles() {
                 axios({
-                    url: this.baseUrl+'portalUser/roles',
+                    url:this.baseUrl+ 'portalUser/roles',
                     method: 'post',
                     data: {
                     }
@@ -832,7 +833,7 @@
             },
             getUser() {
                 axios({
-                    url: this.baseUrl+'portalUser/get',
+                    url:this.baseUrl+ 'portalUser/get',
                     method: 'post',
                     data: {
                     "localUserId": this.personId
@@ -865,7 +866,7 @@
             },
             loadOrgTree() {
                 axios({
-                    url: this.baseUrl+'organization/' + this.version + '/tree',
+                    url:this.baseUrl+ 'organization/' + this.version + '/tree',
                     method: 'get',
                     headers: {}
                 }).then(res => {
@@ -879,7 +880,7 @@
             }, loadOfficeTree(code) {
                 if (!!code) {
                     axios({
-                        url: this.baseUrl+'office/tree',
+                        url:this.baseUrl+ 'office/tree',
                         method: 'post',
                         headers: {},
                         data: {
@@ -898,7 +899,7 @@
             },
             loadDics(dicCode, dics) {
                 axios({
-                    url: this.baseUrl+'dicItem/tree',
+                    url:this.baseUrl+ 'dicItem/tree',
                     method: 'get',
                     headers: {},
                     params: {
@@ -914,7 +915,7 @@
                 })
             }, deleteData(id) {//删除
                 axios({
-                    url: this.baseUrl+'personnel/' + id,
+                    url:this.baseUrl+ 'personnel/' + id,
                     method: 'delete',
                     headers: {}
                 }).then(res => {
@@ -1006,7 +1007,7 @@
     }
 </script>
 <style scoped>
-    .personPage{
+   .personPage{
          padding:10px;
 		margin-top:10px;
     }
@@ -1018,6 +1019,27 @@
         margin-top: 0px
     }
     .card_height{
-        min-height: calc(100vh - 110px);
+        min-height: calc(100vh - 120px);
+        max-height: calc(100vh - 120px);
+    }
+    .dialogLabel {
+        margin-top: 0px;
+    }
+    .modal_tab .el-tabs__content{
+        top: 0px;
+    }
+    .modal_tab  .el-tabs__nav-wrap {
+        margin-top: 0px;
+    }
+     .modal_tab  .el-tabs__content {
+        height: 100%;
+    }
+    .modal_tab .el-tabs__item.is-active{
+        color: #409EFF !important;
+    }
+    .el-tree {
+        max-height: calc(100vh - 215px);
+        overflow-x: auto;
+        overflow-y: auto;
     }
 </style>

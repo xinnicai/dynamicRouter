@@ -2,185 +2,242 @@
   <div>
     <el-row style="margin-bottom:10px">
       <el-col :span="24">
-        <!-- <el-card class="box-card"> -->
-        <div id="dic-header">
-          <el-select v-model="version" placeholder="请选择字典版本" style="width:210px;">
-            <el-option v-for="(v, index) in versions" :lable="v.version" :value="v.version" :key="v.id"></el-option>
-          </el-select>
-          <el-button style="margin-left:10px" @click="console.log(newVersion);addVersionDialog.show = true">新增版本</el-button>
-          <el-button v-if="this.version != this.activedVerson">激活版本</el-button></div>
-        <!-- </el-card> --></el-col>
+			<!-- <el-card class="box-card"> -->
+				<div id="dic-header">
+					<el-select v-model="version" placeholder="请选择字典版本" style="width:210px;">
+						<el-option v-for="(v, index) in versions" :lable="v.version" :value="v.version"
+								:key="v.id"></el-option>
+					</el-select>
+					<el-button style="margin-left:10px" @click="console.log(newVersion);addVersionDialog.show = true">新增版本
+					</el-button>
+					<el-button v-if="this.version != this.activedVerson">激活版本</el-button>
+				</div>
+			<!-- </el-card> -->
+		</el-col>
     </el-row>
     <el-row :gutter="16">
       <el-col :span="5">
-        <el-card class="box-card leftCard">
-          <el-row>
-            <el-dropdown @command="addGroupOrDic" icon="el-icon-add">
-              <el-button type="primary">
-					<i class="el-icon-plus"></i>
-				</el-button> 
-              <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item command="group">分组</el-dropdown-item>
-                <el-dropdown-item command="dic">字典</el-dropdown-item></el-dropdown-menu>
-            </el-dropdown>
-            <el-button type="primary" @click="editGroupOrDic" icon="el-icon-edit"></el-button>
-            <el-button @click="deleteGroupOrDic" type="danger" icon="el-icon-delete" style="margin-left:0px"></el-button>
-            <!-- <el-button-group>
-            <el-button type="primary" icon="el-icon-edit" @click="editGroupOrDic"></el-button>
-            <el-button type="primary" icon="el-icon-delete" @click="deleteGroupOrDic"></el-button></el-button-group> -->
-          </el-row>
-          <el-row style="margin-top:10px">
-            <el-col :span="24">
-              <el-input v-model="filterGroupName" placeholder="输入名称"></el-input>
-            </el-col>
-          </el-row>
-          <el-row style="margin-top:10px" class="filter-tree el-tree">
-            <el-tree ref="dicGroupTree" highlight-current icon-class='el-icon-folder' :data="dicGroups" :props="{label:'name'}" :filter-node-method="filterDics" node-key="id" :default-expanded-keys="defaultExpand" @node-click="groupSelected">
-              <span class="span-ellipsis" slot-scope="{ node, data }">
-                <el-tooltip class="item" effect="dark" :content="node.label" placement="bottom" :open-delay="1000">
-                  <span>{{ node.label }}</span></el-tooltip>
-              </span>
-            </el-tree>
-          </el-row>
-        </el-card>
+        <el-card class="box-card leftCard" >
+			<el-row>
+				<el-dropdown @command="addGroupOrDic"
+								icon="el-icon-add">
+					<el-button type="primary">
+						<i class="el-icon-document-add"></i>
+					</el-button> 
+					<el-dropdown-menu slot="dropdown">
+						<el-dropdown-item command="group">分组</el-dropdown-item>
+						<el-dropdown-item command="dic">字典</el-dropdown-item>
+					</el-dropdown-menu>
+				</el-dropdown>
+					<el-button type="primary" @click="editGroupOrDic" icon="el-icon-edit"></el-button>
+				<el-button @click="deleteGroupOrDic" type="danger" icon="el-icon-delete" style="margin-left:0px"></el-button>
+				<!-- <el-button-group>
+					<el-button type="primary" icon="el-icon-edit" @click="editGroupOrDic"></el-button>
+					<el-button type="primary" icon="el-icon-delete" @click="deleteGroupOrDic"></el-button>
+				</el-button-group> -->
+			</el-row>
+			<el-row style="margin-top:10px">
+				<el-col :span="24">
+					<el-input v-model="filterGroupName" placeholder="输入名称"></el-input>
+				</el-col>
+			</el-row>
+			<el-row style="margin-top:10px"  class="filter-tree el-tree">
+				<el-tree ref="dicGroupTree" highlight-current icon-class='el-icon-folder'
+							:data="dicGroups" :props="{label:'name'}" :filter-node-method="filterDics" node-key="id" :default-expanded-keys="defaultExpand" 
+							@node-click="groupSelected">
+						<span class="span-ellipsis" slot-scope="{ node, data }">
+								<el-tooltip class="item" effect="dark" :content="node.label" placement="bottom" :open-delay="1000">
+								<span >{{ node.label }}</span>
+							</el-tooltip>
+						</span>
+				</el-tree>
+			</el-row>
+		</el-card>
       </el-col>
       <el-col :span="19">
         <el-card class="box-card rightCard">
-          <el-row>
-            <el-col :span="24">
-              <el-input placeholder="输入名称" v-model="dicItemsData.searchName" style="width: 180px"></el-input>
-              <el-button icon="el-icon-search" type="primary" @click="loadItems"></el-button>
-              <el-dropdown @command="addItem">
-				  <el-button type="primary">
-					新增
-				</el-button> 
-                <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="item">项</el-dropdown-item>
-                  <el-dropdown-item command="subItem">子项</el-dropdown-item></el-dropdown-menu>
-              </el-dropdown>
-            </el-col>
-          </el-row>
-          <el-row style="margin-top:10px">
-            <el-table :data="dicItemsData.items" style="width: 100%;margin-bottom: 20px;" row-key="key" highlight-current-row @current-change="selectItem" border :tree-props="{children: 'children', hasChildren: 'hasChildren'}">
-              <el-table-column prop="key" label="编码" sortable width="180"></el-table-column>
-              <el-table-column prop="text" label="名称" sortable width="180"></el-table-column>
-              <el-table-column prop="unit" label="单位"></el-table-column>
-              <el-table-column label="操作">
-                <template slot-scope="scope">
-                  <el-button size="mini" @click="editItem(scope.$index, scope.row)">编辑</el-button>
-                  <el-button v-if="!scope.row.hasChildren" size="mini" type="danger" @click="deleteItem(scope.$index, scope.row)">删除</el-button></template>
-              </el-table-column>
-            </el-table>
-          </el-row>
-          <el-row style="margin-top: 10px;margin-bottom:20px;float: right;">
-            <el-pagination @size-change="loadItems" @current-change="loadItems" :current-page.sync="dicItemsData.currentPage" :page-sizes="[10, 25, 50, 100]" :page-size.sync="dicItemsData.limit" layout="total, sizes, prev, pager, next, jumper" :total="dicItemsData.totalItems"></el-pagination>
-		  </el-row>
-        </el-card>
+			<el-row>
+				<el-col :span="24">
+					<el-input placeholder="输入名称" v-model="dicItemsData.searchName"
+								style="width: 180px"></el-input>
+					<el-button icon="el-icon-search" type="primary" @click="loadItems"></el-button>
+					<el-dropdown @command="addItem">
+						<el-button type="primary">
+							新增<i class="el-icon-arrow-down el-icon--right"></i>
+						</el-button>
+						<el-dropdown-menu slot="dropdown">
+							<el-dropdown-item command="item">项</el-dropdown-item>
+							<el-dropdown-item command="subItem">子项</el-dropdown-item>
+						</el-dropdown-menu>
+					</el-dropdown>
+
+				</el-col>
+			</el-row>
+			<el-row style="margin-top:10px">
+				<el-table
+						:data="dicItemsData.items"
+						style="width: 100%;margin-bottom: 20px;"
+						row-key="key"
+						highlight-current-row
+						@current-change="selectItem"
+						border
+						default-expand-all
+						:tree-props="{children: 'children', hasChildren: 'hasChildren'}">
+					<el-table-column
+							prop="key"
+							label="编码"
+							sortable
+							width="180">
+					</el-table-column>
+					<el-table-column
+							prop="text"
+							label="名称"
+							sortable
+							width="180">
+					</el-table-column>
+					<el-table-column
+							prop="unit"
+							label="单位">
+					</el-table-column>
+					<el-table-column label="操作">
+						<template slot-scope="scope">
+							<el-button
+									size="mini"
+									@click="editItem(scope.$index, scope.row)">编辑
+							</el-button>
+							<el-button v-if="!scope.row.hasChildren"
+										size="mini"
+										type="danger"
+										@click="deleteItem(scope.$index, scope.row)">删除
+							</el-button>
+						</template>
+					</el-table-column>
+				</el-table>
+			</el-row>
+			<el-row style="margin-top: 10px;margin-bottom:20px;float: right;">
+				<el-pagination
+						@size-change="loadItems"
+						@current-change="loadItems"
+						:current-page.sync="dicItemsData.currentPage"
+						:page-sizes="[10, 25, 50, 100]"
+						:page-size.sync="dicItemsData.limit"
+						layout="total, sizes, prev, pager, next, jumper"
+						:total="dicItemsData.totalItems">
+				</el-pagination>
+			</el-row>
+
+		</el-card>
       </el-col>
     </el-row>
-    <!-- </el-aside> -->
-    <!-- el-main -->
-    <!-- <el-main class="onePage" style="height: 95.5%;"> -->
-    <!-- </el-main>
-    <el-container></el-container> -->
     <!-- 新建版本 -->
-    <el-dialog :title="addVersionDialog.title" :visible.sync="addVersionDialog.show" width="65%" @close="closeVersionDialog">
-      <el-form :rules="addVersionDialog.addVersionRules" ref="addVisionForm" :model="newVersion" label-width="80px">
-        <el-form-item label="源版本">
-          <el-select v-model="newVersion.sourceVersion" placeholder="请选择字典版本" style="width:100%">
-            <el-option v-for="(v, index) in versions" :lable="v.version" :value="v.version" :key="v.id"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="新版本" prop="version">
-          <el-input v-model="newVersion.version"></el-input>
-        </el-form-item>
-        <el-form-item label="是否激活">
-          <el-checkbox v-model="newVersion.active" style="margin-left: 10px"></el-checkbox>
-        </el-form-item>
-        <el-form-item label="说明">
-          <el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="newVersion.description"></el-input>
-        </el-form-item>
-        <el-form-item class="dialog_button">
-          <el-button type="primary" @click="addVersion('addVisionForm')">创建</el-button>
-          <el-button @click="addVersionDialog.show = false">取消</el-button></el-form-item>
-      </el-form>
-    </el-dialog>
-    <!-- 新建/编辑分组 -->
-    <el-dialog :title="groupDialog.title" :visible.sync="groupDialog.show" width="65%" @close="closeGroupDialog">
-      <el-form :rules="groupDialog.addGroupRules" ref="addGroupForm" :model="newGroup" label-width="80px">
-        <el-form-item label="所属分组" prop="parentCode">
-          <el-input v-if="newGroup.parent" v-model="newGroup.parent.name" disabled></el-input>
-          <el-input v-if="!newGroup.parent" disabled></el-input>
-        </el-form-item>
-        <el-form-item label="代码" prop="code">
-          <el-input v-model="newGroup.code" :disabled="'edit'==groupDialog.action"></el-input>
-        </el-form-item>
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="newGroup.name"></el-input>
-        </el-form-item>
-        <el-form-item label="说明">
-          <el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="newGroup.description"></el-input>
-        </el-form-item>
-        <el-form-item label="排序编号" prop="sortNo">
-          <el-input type="number" v-model="newGroup.sortNo"></el-input>
-        </el-form-item>
-        <el-form-item class="dialog_button">
-          <el-button @click="closeGroupDialog">取消</el-button>
-          <el-button type="primary" @click="saveGroup(groupDialog.action)">保存</el-button></el-form-item>
-      </el-form>
-    </el-dialog>
-    <!-- 新建/编辑字典 -->
-    <el-dialog :title="dicDialog.title" :visible.sync="dicDialog.show" width="65%" @close="closeDicDialog">
-      <el-form :rules="dicDialog.addDicRules" ref="addDicForm" :model="newDic" label-width="80px">
-        <el-form-item label="所属分组" prop="groupCode">
-          <el-input v-model="newDic.group.name" disabled></el-input>
-        </el-form-item>
-        <el-form-item label="代码" prop="code">
-          <el-input v-model="newDic.code"></el-input>
-        </el-form-item>
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="newDic.name"></el-input>
-        </el-form-item>
-        <el-form-item label="说明">
-          <el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="newDic.description"></el-input>
-        </el-form-item>
-        <el-form-item class="dialog_button">
-          <el-button @click="closeDicDialog">取消</el-button>
-          <el-button type="primary" @click="saveDic(dicDialog.action)">保存</el-button></el-form-item>
-      </el-form>
-    </el-dialog>
-    <!-- 新建/编辑项 -->
-    <el-dialog :title="itemDialog.title" :visible.sync="itemDialog.show" width="65%" @close="closeItemDialog">
-      <el-form :rules="itemDialog.itemRules" ref="addItemForm" :model="newItem" label-width="80px">
-        <el-form-item label="所属字典" prop="dicCode">
-          <el-input v-model="newItem.dic.name" disabled></el-input>
-        </el-form-item>
-        <el-form-item label="父项" prop="dicCode" v-if="newItem.parent">
-          <el-input v-model="newItem.parent.text" disabled></el-input>
-        </el-form-item>
-        <el-form-item label="代码" prop="key">
-          <el-input v-model="newItem.key" :disabled="'edit'==itemDialog.action"></el-input>
-        </el-form-item>
-        <el-form-item label="名称" prop="text">
-          <el-input v-model="newItem.text"></el-input>
-        </el-form-item>
-        <el-form-item label="单位" prop="unit">
-          <el-input v-model="newItem.unit"></el-input>
-        </el-form-item>
-        <el-form-item label="说明">
-          <el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="newItem.description"></el-input>
-        </el-form-item>
-        <el-form-item class="dialog_button">
-          <el-button @click="closeItemDialog">取消</el-button>
-          <el-button type="primary" @click="saveItem(itemDialog.action)">保存</el-button></el-form-item>
-      </el-form>
-    </el-dialog>
+		<el-dialog :title="addVersionDialog.title" :visible.sync="addVersionDialog.show" width="65%" @close="closeVersionDialog">
+			<el-form :rules="addVersionDialog.addVersionRules" ref="addVisionForm" :model="newVersion" label-width="80px">
+				<el-form-item label="源版本">
+					<el-select v-model="newVersion.sourceVersion" placeholder="请选择字典版本" style="width:100%">
+						<el-option v-for="(v, index) in versions" :lable="v.version" :value="v.version"
+								   :key="v.id"></el-option>
+					</el-select>
+				</el-form-item>
+				<el-form-item label="新版本" prop="version">
+					<el-input v-model="newVersion.version"></el-input>
+				</el-form-item>
+				<el-form-item label="是否激活">
+					<el-checkbox v-model="newVersion.active" style="margin-left: 10px"></el-checkbox>
+				</el-form-item>
+				<el-form-item label="说明">
+					<el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="newVersion.description">
+					</el-input>
+				</el-form-item>
+				<el-form-item class="dialog_button">
+					<el-button type="primary" @click="addVersion('addVisionForm')">创建</el-button>
+					<el-button @click="addVersionDialog.show = false">取消</el-button>
+				</el-form-item>
+			</el-form>
+		</el-dialog>
+		<!-- 新建/编辑分组 -->
+		<el-dialog :title="groupDialog.title" :visible.sync="groupDialog.show" width="65%" @close="closeGroupDialog">
+			<el-form :rules="groupDialog.addGroupRules" ref="addGroupForm" :model="newGroup" label-width="80px">
+				<el-form-item label="所属分组" prop="parentCode">
+					<el-input v-if="newGroup.parent" v-model="newGroup.parent.name" disabled></el-input>
+					<el-input v-if="!newGroup.parent" disabled></el-input>
+				</el-form-item>
+				<el-form-item label="代码" prop="code">
+					<el-input v-model="newGroup.code" :disabled="'edit'==groupDialog.action"></el-input>
+				</el-form-item>
+				<el-form-item label="名称" prop="name">
+					<el-input v-model="newGroup.name"></el-input>
+				</el-form-item>
+				<el-form-item label="说明">
+					<el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="newGroup.description">
+					</el-input>
+				</el-form-item>
+				<el-form-item label="排序编号" prop="sortNo">
+					<el-input type="number" v-model="newGroup.sortNo"></el-input>
+				</el-form-item>
+				<el-form-item class="dialog_button">
+					<el-button @click="closeGroupDialog">取消</el-button>
+					<el-button type="primary" @click="saveGroup(groupDialog.action)">保存</el-button>
+				</el-form-item>
+			</el-form>
+		</el-dialog>
+		<!-- 新建/编辑字典 -->
+		<el-dialog :title="dicDialog.title" :visible.sync="dicDialog.show" width="65%" @close="closeDicDialog">
+			<el-form :rules="dicDialog.addDicRules" ref="addDicForm" :model="newDic" label-width="80px">
+				<el-form-item label="所属分组" prop="groupCode">
+					<el-input v-model="newDic.group.name" disabled></el-input>
+				</el-form-item>
+				<el-form-item label="代码" prop="code">
+					<el-input v-model="newDic.code"></el-input>
+				</el-form-item>
+				<el-form-item label="名称" prop="name">
+					<el-input v-model="newDic.name"></el-input>
+				</el-form-item>
+				<el-form-item label="说明">
+					<el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="newDic.description">
+					</el-input>
+				</el-form-item>
+				<el-form-item class="dialog_button">
+					<el-button @click="closeDicDialog">取消</el-button>
+					<el-button type="primary" @click="saveDic(dicDialog.action)">保存</el-button>
+				</el-form-item>
+			</el-form>
+		</el-dialog>
+		<!-- 新建/编辑项 -->
+		<el-dialog :title="itemDialog.title" :visible.sync="itemDialog.show" width="65%" @close="closeItemDialog">
+			<el-form :rules="itemDialog.itemRules" ref="addItemForm" :model="newItem" label-width="80px">
+				<el-form-item label="所属字典" prop="dicCode">
+					<el-input v-model="newItem.dic.name" disabled></el-input>
+				</el-form-item>
+				<el-form-item label="父项" prop="dicCode" v-if="newItem.parent">
+					<el-input v-model="newItem.parent.text" disabled></el-input>
+				</el-form-item>
+				<el-form-item label="代码" prop="key">
+					<el-input v-model="newItem.key" :disabled="'edit'==itemDialog.action"></el-input>
+				</el-form-item>
+				<el-form-item label="名称" prop="text">
+					<el-input v-model="newItem.text"></el-input>
+				</el-form-item>
+				<el-form-item label="单位" prop="unit">
+					<el-input v-model="newItem.unit"></el-input>
+				</el-form-item>
+				<el-form-item label="说明">
+					<el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="newItem.description">
+					</el-input>
+				</el-form-item>
+				<el-form-item class="dialog_button">
+					<el-button @click="closeItemDialog">取消</el-button>
+					<el-button type="primary" @click="saveItem(itemDialog.action)">保存</el-button>
+				</el-form-item>
+			</el-form>
+		</el-dialog>
   </div>
   <!-- </el-container> --></template>
 <script>
 import axios from 'axios'
+import { getList } from '@/api/dic'
+
 	export default {
-	    data() {
+	    data(){
 	        // 验证版本唯一
 	        var validVersionUnique = (rule, value, callback) => {
 	            this.versions.forEach(v => {
@@ -235,26 +292,23 @@ import axios from 'axios'
 	            return cts;
 	        };
 
-	        var versionType = 'standard';
+	        var dicType = 'standard';
 	
 	        return {
 	            /**
 	             *  头部数据
 	             * */
-	            // 根分组代码
-	            parentGroup: versionType,
-	            // 版本类型
-	            versionType: versionType,
+	            // 字典类型
+				dicType: dicType,
 	            // 当前已激活版本
 	            activedVerson: null,
-	            // 当前版本
-	            version: null,
+	            version:'',
 	            // 版本列表
 	            versions: [],
 	
 	            // 新版本
 	            newVersion: {
-	                type: versionType,
+	                type: dicType,
 	                version: null,
 	                description: null,
 	                active: true,
@@ -313,7 +367,8 @@ import axios from 'axios'
 	                active: true,
 	                scope: null,
 	                version: this.version,
-	                sortNo: null
+	                sortNo: null,
+					type: dicType
 	            },
 	            // 字典dialog属性
 	            dicDialog: {
@@ -339,7 +394,8 @@ import axios from 'axios'
 	                description: null,
 	                classify: null,
 	                active: true,
-	                visible: true
+	                visible: true,
+					type: dicType
 	            },
 	
 	            // 字典项dialog
@@ -366,7 +422,9 @@ import axios from 'axios'
 	                unit: null,
 	                description: null,
 	                parent: null,
-	                hasChildren: false
+	                hasChildren: false,
+					type: dicType,
+					active:false
 	            },
 	            //字典项部分数据
 	            dicItemsData: {
@@ -393,15 +451,34 @@ import axios from 'axios'
 	         */
 	        // 加载字典版本
 	        loadVersions() {
-	            axios({
-	                url: this.baseUrl+'version',
-	                method: 'get',
-	                headers: {},
-	                params: {
-	                    type: this.versionType
-	                }
-	            }).then(res => {
-	                let data = res.data;
+	            // axios({
+	            //     url: this.baseUrl+'version',
+	            //     method: 'get',
+	            //     headers: {},
+	            //     params: {
+	            //         type: this.dicType
+	            //     }
+	            // }).then(res => {
+	            //     let data = res.data;
+	            //     if (data.success) {
+	            //         this.versions.splice(0, this.versions.length);
+	            //         data.content.forEach(v => {
+	            //             this.versions.push(v)
+	            //             if (v.active) {
+	            //                 this.activedVerson = v.version;
+	            //                 this.version = v.version;
+	            //             }
+	            //         });
+	            //     }
+	            // }).catch(e => {
+	            //     console.error(e);
+				// })
+				let listQuery={
+					type: this.dicType
+				}
+
+				getList(listQuery).then(response => {
+					let data = response;
 	                if (data.success) {
 	                    this.versions.splice(0, this.versions.length);
 	                    data.content.forEach(v => {
@@ -412,9 +489,9 @@ import axios from 'axios'
 	                        }
 	                    });
 	                }
-	            }).catch(e => {
+				}).catch(e => {
 	                console.error(e);
-	            })
+				})
 	        },
 	        // 新增版本
 	        addVersion(formName) {
@@ -428,7 +505,7 @@ import axios from 'axios'
 	                        data: this.newVersion
 	                    }).then(res => {
 	                        this.newVersion = {
-	                            type: this.versionType,
+	                            type: this.dicType,
 	                            version: null,
 	                            description: null,
 	                            active: true,
@@ -458,15 +535,15 @@ import axios from 'axios'
 	                method: 'get',
 	                headers: {},
 	                params: {
-	                    parentCode: this.parentGroup,
-	                    active: this.showVoidedGroup ? null : true,
+	                    parentCode: this.dicType,
+						type: this.dicType,
 	                    version: this.version,
 						withDic:true
 	                }
 	            }).then(res => {
 	                let data = res.data;
 	                if (data.success) {
-	                    this.dicGroups=[];
+	                    this.dicGroups.splice(0, this.dicGroups.length);
 	                    data.content.forEach(g => this.dicGroups.push(g));
 	                    this.selectedDic = null;
 	                    this.selectedGroup = null;
@@ -478,7 +555,10 @@ import axios from 'axios'
 	        // 过滤字典（字典组）
 	        filterDics(value, data) {
 	            if (!value) return true;
-	            return data.name.indexOf(value) !== -1;
+	            if (null == data || null == data.name) {
+				} else {
+					return data.name.indexOf(value) !== -1;
+				}
 	        },
 	        // 选中分组
 	        groupSelected(data, node, self) {
@@ -493,7 +573,11 @@ import axios from 'axios'
 	        // 添加字典或字典组
 	        addGroupOrDic(command) {
 	            if (!this.selectedGroup) {
-	                this.$message.error('请选择所属分组');
+					this.$message({
+						showClose: true,
+						message: '请选择所属分组',
+						type: 'warning'
+					});
 	                return;
 	            }
 	            switch (command) {
@@ -510,7 +594,8 @@ import axios from 'axios'
 	                        active: true,
 	                        scope: null,
 	                        version: this.version,
-	                        sortNo: null
+	                        sortNo: null,
+							type: this.dicType
 	                    };
 	                    // this.$refs['addGroupForm'].clearValidate();
 	                    this.groupDialog.show = true;
@@ -526,7 +611,8 @@ import axios from 'axios'
 	                        description: null,
 	                        classify: null,
 	                        active: true,
-	                        visible: true
+	                        visible: true,
+							type: this.dicType
 	                    };
 	                    this.dicDialog.show = true;
 	                    break;
@@ -545,7 +631,29 @@ import axios from 'axios'
 	                        headers: {},
 	                        data: this.newGroup
 	                    }).then(res => {
-	                        this.loadDicGroups();
+							this.loadDicGroups();
+							let data = res.data;
+							if(data.success){
+								this.$notify({
+									title: '编辑字典组-标准字典',
+									message: '编辑成功',
+									type: 'success'
+								});
+							}else{
+								if(!!data.errMsg){
+									this.$notify.error({
+										title: '编辑字典组-标准字典',
+										message: '编辑失败原因'+data.errMsg,
+										duration: 0
+									});
+								}else{
+									this.$notify.error({
+										title: '编辑字典组-标准字典',
+										message: '编辑失败!',
+										duration: 0
+									});
+								}
+							}
 	                    });
 	                    this.closeGroupDialog();
 	                    break
@@ -558,7 +666,29 @@ import axios from 'axios'
 	                                headers: {},
 	                                data: this.newGroup
 	                            }).then(res => {
-	                                this.loadDicGroups();
+									this.loadDicGroups();
+									let data = res.data;
+									if(data.success){
+										this.$notify({
+											title: '新增字典组-标准字典',
+											message: '新增成功',
+											type: 'success'
+										});
+									}else{
+										if(!!data.errMsg){
+											this.$notify.error({
+												title: '新增字典组-标准字典',
+												message: '新增失败原因'+data.errMsg,
+												duration: 0
+											});
+										}else{
+											this.$notify.error({
+												title: '新增字典组-标准字典',
+												message: '新增失败!',
+												duration: 0
+											});
+										}
+									}
 	                            });
 	                            this.closeGroupDialog();
 	                        } else {
@@ -587,7 +717,29 @@ import axios from 'axios'
 	                        headers: {},
 	                        data: this.newDic
 	                    }).then(rew => {
-	                        this.loadDicGroups();
+							this.loadDicGroups();
+							let data = res.data;
+							if(data.success){
+								this.$notify({
+									title: '编辑字典组-标准字典',
+									message: '编辑成功',
+									type: 'success'
+								});
+							}else{
+								if(!!data.errMsg){
+									this.$notify.error({
+										title: '编辑字典组-标准字典',
+										message: '编辑失败原因'+data.errMsg,
+										duration: 0
+									});
+								}else{
+									this.$notify.error({
+										title: '编辑字典组-标准字典',
+										message: '编辑失败!',
+										duration: 0
+									});
+								}
+							}
 	                    })
 	                    this.closeDicDialog();
 	                    break;
@@ -601,7 +753,29 @@ import axios from 'axios'
 	                                headers: {},
 	                                data: this.newDic
 	                            }).then(rew => {
-	                                this.loadDicGroups();
+									this.loadDicGroups();
+									let data = res.data;
+									if(data.success){
+										this.$notify({
+											title: '新增字典-标准字典',
+											message: '新增成功',
+											type: 'success'
+										});
+									}else{
+										if(!!data.errMsg){
+											this.$notify.error({
+												title: '新增字典-标准字典',
+												message: '新增失败原因'+data.errMsg,
+												duration: 0
+											});
+										}else{
+											this.$notify.error({
+												title: '新增字典-标准字典',
+												message: '新增失败!',
+												duration: 0
+											});
+										}
+									}
 	                            })
 	                            this.closeDicDialog();
 	                        } else {
@@ -627,7 +801,8 @@ import axios from 'axios'
 	                    method: 'get'
 	                }).then(res => {
 	                    this.newGroup = res.data.content;
-	                    this.groupDialog.show = true;
+						this.groupDialog.show = true;
+						
 	                });
 	            } else if (this.selectedDic) {
 	                this.dicDialog.title = '编辑字典';
@@ -640,7 +815,11 @@ import axios from 'axios'
 	                    this.dicDialog.show = true;
 	                })
 	            } else {
-	                this.$message.error("请先选择字典或字典组");
+					this.$message({
+						showClose: true,
+						message: '请先选择字典或字典组',
+						type: 'warning'
+					});
 	            }
 	        },
 	        deleteGroupOrDic() {
@@ -655,7 +834,29 @@ import axios from 'axios'
 	                            url: this.baseUrl+'dicGroup/' + this.selectedGroup.id,
 	                            method: 'delete'
 	                        }).then(res => {
-	                            this.loadDicGroups();
+								this.loadDicGroups();
+								let data = res.data;
+								if(data.success){
+									this.$notify({
+										title: '删除字典组-标准字典',
+										message: '字典组删除成功！',
+										type: 'success'
+									});
+								}else{
+									if(!!data.errMsg){
+										this.$notify.error({
+											title: '删除字典组-标准字典',
+											message: '删除失败原因'+data.errMsg,
+											duration: 0
+										});
+									}else{
+										this.$notify.error({
+											title: '删除字典组-标准字典',
+											message: '删除失败!',
+											duration: 0
+										});
+									}
+								}
 	                        })
 	                    }
 	                }).catch((e) => {
@@ -669,17 +870,43 @@ import axios from 'axios'
 	                }).then((command) => {
 	                    if ('confirm' == command) {
 	                        axios({
-	                            url: this.baseUrl+'dic/' + this.selectedDic.id,
+	                            url: 'dic/' + this.selectedDic.id,
 	                            method: 'delete'
 	                        }).then(res => {
-	                            this.loadDicGroups();
+								this.loadDicGroups();
+								let data = res.data;
+								if(data.success){
+									this.$notify({
+										title: '删除字典-标准字典',
+										message: '字典组删除成功！',
+										type: 'success'
+									});
+								}else{
+									if(!!data.errMsg){
+										this.$notify.error({
+											title: '删除字典-标准字典',
+											message: '删除失败原因'+data.errMsg,
+											duration: 0
+										});
+									}else{
+										this.$notify.error({
+											title: '删除字典-标准字典',
+											message: '删除失败!',
+											duration: 0
+										});
+									}
+								}
 	                        })
 	                    }
 	                }).catch((e) => {
 	                    // 取消
 	                })
 	            } else {
-	                this.$message.error("请选择要删除的字典组或字典");
+					this.$message({
+						showClose: true,
+						message: '请选择要删除的字典组或字典',
+						type: 'warning'
+					});
 	            }
 	        },
 	
@@ -687,10 +914,13 @@ import axios from 'axios'
 	         *
 	         */
 	        // 加载字典项
-	        loadItems(val) {
-				this.dicItemsData.limit=val;
+	        loadItems() {
 	            if (!this.selectedDic) {
-	                this.$message.error('请选择字典');
+	                this.$message({
+						showClose: true,
+						message: '请选择字典',
+						type: 'warning'
+					});
 	                return;
 	            }
 	            axios({
@@ -718,7 +948,11 @@ import axios from 'axios'
 	        // 添加项
 	        addItem(command) {
 	            if (!this.selectedDic) {
-	                this.$message.error('请选择字典');
+					this.$message({
+						showClose: true,
+						message: '请选择字典',
+						type: 'warning'
+					});
 	                return;
 	            }
 	            switch (command) {
@@ -733,13 +967,19 @@ import axios from 'axios'
 	                        unit: null,
 	                        description: null,
 	                        parent: null,
-	                        hasChildren: false
+	                        hasChildren: false,
+							type: this.dicType,
+							active: false
 	                    };
 	                    this.itemDialog.show = true;
 	                    break;
 	                case 'subItem':
 	                    if (!this.selectedItem) {
-	                        this.$message.error('请选择字典项');
+							this.$message({
+								showClose: true,
+								message: '请选择字典项',
+								type: 'warning'
+							});
 	                        return;
 	                    }
 	                    this.itemDialog.title = '新增子项';
@@ -752,7 +992,9 @@ import axios from 'axios'
 	                        unit: null,
 	                        description: null,
 	                        parent: this.selectedItem,
-	                        hasChildren: false
+	                        hasChildren: false,
+							type: this.dicType,
+							active: false
 	                    };
 	                    this.itemDialog.show = true;
 	                    break;
@@ -782,7 +1024,29 @@ import axios from 'axios'
 	                        method: 'put',
 	                        data: this.newItem
 	                    }).then(res => {
-	                        this.loadItems();
+							this.loadItems();
+							let data = res.data;
+							if(data.success){
+								this.$notify({
+									title: '编辑字典项-标准字典',
+									message: '字典编辑成功！',
+									type: 'success'
+								});
+							}else{
+								if(!!data.errMsg){
+									this.$notify.error({
+										title: '编辑字典项-标准字典',
+										message: '编辑失败原因'+data.errMsg,
+										duration: 0
+									});
+								}else{
+									this.$notify.error({
+										title: '编辑字典项-标准字典',
+										message: '编辑失败!',
+										duration: 0
+									});
+								}
+							}
 	                    })
 	                    this.closeItemDialog();
 	                    break;
@@ -798,7 +1062,34 @@ import axios from 'axios'
 	                                method:'post',
 	                                data: this.newItem
 	                            }).then(res => {
-	                                this.loadItems();
+									this.loadItems();
+									this.$notify({
+										title: '字典项保存',
+										message: '字典项保存成功！',
+										type: 'success'
+									});
+									let data = res.data;
+									if(data.success){
+										this.$notify({
+											title: '新增字典项-标准字典',
+											message: '字典项新增成功！',
+											type: 'success'
+										});
+									}else{
+										if(!!data.errMsg){
+											this.$notify.error({
+												title: '新增字典项-标准字典',
+												message: '新增失败原因'+data.errMsg,
+												duration: 0
+											});
+										}else{
+											this.$notify.error({
+												title: '新增字典项-标准字典',
+												message: '新增失败!',
+												duration: 0
+											});
+										}
+									}
 	                            })
 	                            this.closeItemDialog();
 	                        } else {
@@ -827,6 +1118,28 @@ import axios from 'axios'
 	                        url: this.baseUrl+'dicItem/' + data.id,
 	                        method: 'delete'
 	                    }).then(res => {
+							let data = res.data;
+							if(data.success){
+								this.$notify({
+									title: '删除字典项-标准字典',
+									message: '字典项删除成功！',
+									type: 'success'
+								});
+							}else{
+								if(!!data.errMsg){
+									this.$notify.error({
+										title: '删除字典项-标准字典',
+										message: '删除失败原因'+data.errMsg,
+										duration: 0
+									});
+								}else{
+									this.$notify.error({
+										title: '删除字典项-标准字典',
+										message: '删除失败!',
+										duration: 0
+									});
+								}
+							}
 	                        this.loadItems();
 	                    })
 	                }
@@ -836,7 +1149,7 @@ import axios from 'axios'
 	        }
 	    },
 	    created() {
-	        // 初始化参数
+			// 初始化参数
 	        this.loadVersions();
 	        if (this.version) {
 	            this.loadDicGroups();
@@ -893,13 +1206,13 @@ import axios from 'axios'
     }
 
 	.rightCard{
-		min-height: calc(100vh - 150px);
-		max-height:calc(100vh - 150px);
+		min-height: calc(100vh - 156px);
+		max-height:calc(100vh - 156px);
 		overflow: auto;
 	}
 	.leftCard{
-		min-height: calc(100vh - 150px);
-		max-height:calc(100vh - 150px);
+		min-height: calc(100vh - 180px);
+		max-height:calc(100vh - 156px);
 	}
 	  .el-tree {
         max-height:calc(100vh - 260px);

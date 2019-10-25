@@ -1,14 +1,15 @@
 <template>
- <div class="systemPage">
-     <el-col :span="24">
-        <el-card class="box-card card_height">
+    <div>
+        <el-card class="box-card">
             <el-row>
                 <el-col :span="24">
-                    <el-input placeholder="输入名称" style="width: 300px" v-model="queryName"></el-input>
-                    <el-button icon="el-icon-search" type="primary" @click="loadSystems">搜索</el-button>
-                    <el-button icon="el-icon-plus" type="primary" style="margin-left: 10px" @click="showForm" v-if="hasPermission('system.add')">
-                        新增项
-                    </el-button>
+                    <label >当前在线人数: </label>
+                    <el-input  id="onlineSize" style="width: 200px"  :value="onlineSize"></el-input>
+                    <el-button icon="el-icon-search" type="primary" @click="loadSystems" style="margin-left:16px">刷新</el-button>
+                </el-col>
+                <el-col :span="24">
+<!--                            style="margin-left: 16px"-->
+
                 </el-col>
             </el-row>
             <el-row style="margin-top:10px">
@@ -19,37 +20,35 @@
                         border
                         default-expand-all>
                     <el-table-column
-                            prop="code"
-                            label="系统代码"
-                            sortable
+                            prop="account"
+                            label="登录账号"
                             width="180">
                     </el-table-column>
                     <el-table-column
-                            prop="name"
-                            label="系统名称"
+                            prop="createTime"
+                            label="本次登录时间"
                             sortable
                             width="180">
                     </el-table-column>
-                    <el-table-column
-                            prop="uri"
-                            label="服务地址">
-                    </el-table-column>
-                    <el-table-column label="操作">
-                        <template slot-scope="scope">
-                            <el-button
-                                    size="mini"
-                                    @click="showForm(scope.row)" v-if="hasPermission('system.edit')">编辑
-                            </el-button>
-                            <el-button
-                                    size="mini"
-                                    type="danger"
-                                    @click="handleDelete(scope.row)" v-if="hasPermission('system.del')">删除
-                            </el-button>
-                        </template>
-                    </el-table-column>
+<!--                            <el-table-column
+                            prop="lastTimeUsed"
+                            label="上次使用时间"
+                            width="180">
+                    </el-table-column>-->
+
+
+
+<!--                             <el-table-column label="详情">-->
+<!--                                 <template slot-scope="scope">-->
+<!--                                     <el-button-->
+<!--                                             size="mini"-->
+<!--                                             @click="logDetailForm(scope.row)">查看-->
+<!--                                     </el-button>-->
+<!--                                 </template>-->
+<!--                             </el-table-column>-->
                 </el-table>
             </el-row>
-            <el-row style="margin-top: 10px;margin-bottom:20px;float: right;">
+            <el-row style="margin-top: 10px;margin-bottom:30px;float: right;">
                 <el-pagination
                         @size-change="handleSizeChange"
                         @current-change="handleCurrentChange"
@@ -62,61 +61,65 @@
             </el-row>
 
         </el-card>
-     </el-col>
-       <!-- 弹窗 -->
+        <!-- 弹窗 -->
         <el-dialog :title="formTitle" :visible.sync="dialogFormVisible" width="50%" @close="cancel">
             <el-form :model="system" :rules="formRules" ref="systemForm" label-width="100px" class="demo-ruleForm">
-                <el-form-item label="代码" prop="code">
-                    <el-input autocomplete="off" :disabled="formDisabled"
-                              v-model="system.code"></el-input>
+                <el-form-item label="动作" prop="audActionName">
+                    <el-input readonly="true" autocomplete="off" :disabled="formDisabled"
+                              v-model="system.audActionName"></el-input>
                 </el-form-item>
-                <el-form-item label="名称" prop="name">
-                    <el-input autocomplete="off" v-model="system.name"></el-input>
+                <el-form-item label="日志记录时间" prop="audDate">
+                    <el-input readonly="true" autocomplete="off" v-model="system.audDate"></el-input>
                 </el-form-item>
-                <el-form-item label="分类" prop="type">
-                    <el-select v-model="system.type" placeholder="请选择类别" style="width:100%"> 
-                        <el-option v-for="code in sysTypes" :label="code.text" :value="code.key"
-                                   :key="code.key"></el-option>
-                    </el-select>
+
+                <el-form-item label="登录账号" prop="audUser">
+                    <el-input readonly="true" autocomplete="off" v-model="system.audUser"></el-input>
                 </el-form-item>
-                <el-form-item label="地址" prop="otherCode">
-                    <el-input autocomplete="off" v-model="system.uri"></el-input>
+                <el-form-item label="用户" prop="userName">
+                    <el-input readonly="true" autocomplete="off" v-model="system.userName"></el-input>
                 </el-form-item>
-                <el-form-item label="描述" prop="description">
-                    <el-input autocomplete="off" v-model="system.description"></el-input>
+                <el-form-item label="客户端IP" prop="audClientIp">
+                    <el-input readonly="true" autocomplete="off" v-model="system.audClientIp"></el-input>
+                </el-form-item>
+                <el-form-item label="日志内容" prop="audClientIp">
+                    <el-input type="textarea" :autosize="{ minRows: 2, maxRows: 6}" readonly="true" autocomplete="off" v-model="system.audResource"></el-input>
                 </el-form-item>
                 <el-form-item class="dialog_button">
-                    <el-button @click="cancel()">取 消</el-button>
-                    <el-button type="primary" @click="save()">提 交</el-button>
+                    <el-button @click="cancel()">关  闭</el-button>
                 </el-form-item>
             </el-form>
         </el-dialog>
- </div>
+    </div>
 </template>
 
 <script>
 	import axios from 'axios'
 	export default {
-       data: function () {
+        data: function () {
             return {
-                version: 'system',
+                version: 'V2019',
+                startTime:null,
+                endTime:null,
                 tableData: [],
-                sysTypes: [],
+                actions:[],
                 dialogFormVisible: false,// 显示新建项窗体
                 currentPage: 1,// 分页器当前显示页
                 pageSize: 10,
                 total: 0,
+                onlineSize: 0,
+                sysTypes:[],
                 system: {},
                 formDisabled: false,
                 formTitle: '系统注册',
                 queryName: null,
+                action:null,
                 formRules: {
-                    code: [
+                   /* code: [
                         {required: true, message: '请输入代码', trigger: 'blur'}
                     ],
                     name: [
                         {required: true, message: '请输入名称', trigger: 'blur'}
-                    ]
+                    ]*/
                 }
             }
         },
@@ -131,6 +134,11 @@
                     this.formDisabled = false;
                     this.formTitle = '系统注册-创建';
                 }
+                this.dialogFormVisible = true
+            },
+            logDetailForm(row){
+                this.system=row;
+                this.formTitle="日志详情";
                 this.dialogFormVisible = true
             },
             cancel() {
@@ -162,15 +170,18 @@
             },
             loadSystems() {
                 axios({
-                    url:this.baseUrl+ 'system',
+                    url:this.baseUrl+ 'logAudit/online',
                     method: 'get',
                     headers: {},
                     params: {
                         sort: "",
                         page: this.currentPage,
-                        limit: this.pageSize,
+                        size: this.pageSize,
+                        endTime:this.endTime,
+                        startTime:this.startTime,
                         // code: "",
-                        name: this.queryName
+                        account: this.queryName,
+                        action:  this.action
                     }
                 }).then(res => {
                     let data = res.data;
@@ -179,6 +190,22 @@
                         this.tableData.splice(0, this.tableData.length);
                         content.content.forEach(g => this.tableData.push(g));
                         this.total = content.totalElements;
+                        this.onlineSize = content.totalElements;
+                    }
+                })
+            },
+            loadActions(){
+                axios({
+                    url:this.baseUrl+ 'logAudit/actions',
+                    method: 'get',
+                    headers: {},
+                    params: {
+
+                    }
+                }).then(res => {
+                    let data = res.data;
+                    if (data.success) {
+                         this.actions = data.content;
                     }
                 })
             },
@@ -228,13 +255,13 @@
                                 if (data.success) {
                                     this.loadSystems();
                                     this.cancel();
-                                    this.$notify({
+                                     this.$notify({
                                         title: '系统注册-创建',
                                         message: '创建成功',
                                         type: 'success'
                                     });
                                 } else {
-                                    if(!!data.errMsg){
+                                     if(!!data.errMsg){
                                         this.$notify.error({
                                             title: '系统注册-创建',
                                             message: '创建失败原因'+data.errMsg,
@@ -285,7 +312,7 @@
                             type: 'success'
                         });
                     } else {
-                        if(!!data.errMsg){
+                         if(!!data.errMsg){
                             this.$notify.error({
                                 title: '系统注册-删除',
                                 message: '删除失败原因'+data.errMsg,
@@ -306,21 +333,39 @@
             // 初始化参数
             this.loadSystems();
             this.loadDics('sys.system.type', this.sysTypes);
+            this.loadActions();//加载登录动作搜索框
         }
     }
 </script>
 <style scoped>
+    body {
+        display: block;
+        margin: 0px;
+        padding: 10px 4px;
+        background-color: #fafafa;
+    }
+
+    .el-header {
+        padding: 0 10px;
+    }
+
+    .el-aside {
+        top: 30px;
+        position: relative;
+        left: 10px
+    }
 
     .dialogLabel label {
         line-height: 35px
     }
 
-    .systemPage{
-        height: 96%;
-        overflow: auto;
+    .ssologPage{
+        top: 11px;
+        position: relative;
+        height: 98%;
+        padding-left: 6px !important;
     }
-    .card_height{
-        min-height: calc(100vh - 103px);
-        max-height: calc(100vh - 103px);
+    .onePage{
+        font-size: 14px;
     }
 </style>

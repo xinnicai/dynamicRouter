@@ -3,110 +3,111 @@
 		<el-row :gutter="16">
 			<el-col :span="5">
 				<el-card class="box-card card_height">
-					<el-row>
+	                <el-row>
 						<el-dropdown @command="addGroupOrDic"
-									icon="el-icon-add">
+									 icon="el-icon-add">
 							<el-button type="primary">
-								<i class="el-icon-plus"></i>
-							</el-button> 
+                                <i class="el-icon-document-add"></i>
+                            </el-button> 
 							<el-dropdown-menu slot="dropdown">
 								<el-dropdown-item command="group">分组</el-dropdown-item>
 								<el-dropdown-item command="dic">字典</el-dropdown-item>
 							</el-dropdown-menu>
 						</el-dropdown>
-						<el-button type="primary" @click="editGroupOrDic" icon="el-icon-edit"></el-button>
-						<el-button @click="deleteGroupOrDic" type="danger" icon="el-icon-delete" style="margin-left:0px"></el-button>
-					</el-row>
-					<el-row style="margin-top:10px">
-						<el-col :span="24">
-							<el-input v-model="filterGroupName" placeholder="输入名称"></el-input>
-						</el-col>
-					</el-row>
-					<el-row style="margin-top:10px">
-						<el-tree class="filter-tree" ref="dicGroupTree" highlight-current icon-class='el-icon-folder'
-								:data="dicGroups" :props="{label:'name'}" :filter-node-method="filterDics"
-								@node-click="groupSelected">
+						 <el-button type="primary" @click="editGroupOrDic" icon="el-icon-edit"></el-button>
+	                    <el-button @click="deleteGroupOrDic" type="danger" icon="el-icon-delete" style="margin-left:0px"></el-button>
+	                </el-row>
+	                <el-row style="margin-top:10px">
+	                    <el-col :span="24">
+	                        <el-input v-model="filterGroupName" placeholder="输入名称"></el-input>
+	                    </el-col>
+	                </el-row>
+	                <el-row style="margin-top:10px">
+	                    <el-tree class="filter-tree" ref="dicGroupTree" highlight-current icon-class='el-icon-folder'
+	                             :data="dicGroups" :props="{label:'name'}" :filter-node-method="filterDics"
+	                             @node-click="groupSelected">
 								<span class="span-ellipsis" slot-scope="{ node, data }">
-									<el-tooltip class="item" effect="dark" :content="node.label" placement="bottom" :open-delay="1000">
+									 <el-tooltip class="item" effect="dark" :content="node.label" placement="bottom" :open-delay="1000">
 										<span >{{ node.label }}</span>
 									</el-tooltip>
 								</span>
-						</el-tree>
-					</el-row>
-				</el-card>
+	                    </el-tree>
+	                </el-row>
+	            </el-card>
 			</el-col>
 			<el-col :span="19">
-				<el-card class="box-card" style="min-height: calc(100vh - 103px);">
-					<el-row>
-						<el-col :span="24">
-							<el-input placeholder="输入名称" v-model="dicItemsData.searchName"
-									style="width: 180px"></el-input>
-							<el-button icon="el-icon-search" type="primary" @click="loadItems"></el-button>
+				 <el-card class="box-card" style="min-height: calc(100vh - 115px);">
+	                <el-row>
+	                    <el-col :span="24">
+	                        <el-input placeholder="输入名称" v-model="dicItemsData.searchName"
+									  style="width: 180px"></el-input>
+	                        <el-button icon="el-icon-search" type="primary" @click="loadItems"></el-button>
 							<el-dropdown @command="addItem">
 								<el-button type="primary">
-									新增
-								</el-button> 
+									新增<i class="el-icon-arrow-down el-icon--right"></i>
+								</el-button>
 								<el-dropdown-menu slot="dropdown">
-									<el-dropdown-item command="item">项</el-dropdown-item>
-									<el-dropdown-item command="subItem">子项</el-dropdown-item>
-								</el-dropdown-menu>
+	                                <el-dropdown-item command="item">项</el-dropdown-item>
+	                                <el-dropdown-item command="subItem">子项</el-dropdown-item>
+	                            </el-dropdown-menu>
 							</el-dropdown>
 	
-						</el-col>
-					</el-row>
-					<el-row style="margin-top:10px">
-						<el-table
-								:data="dicItemsData.items"
-								style="width: 100%;margin-bottom: 20px;"
-								row-key="key"
-								highlight-current-row
-								@current-change="selectItem"
-								border
-								:tree-props="{children: 'children', hasChildren: 'hasChildren'}">
-							<el-table-column
-									prop="key"
-									label="编码"
-									sortable
-									width="180">
-							</el-table-column>
-							<el-table-column
-									prop="text"
-									label="名称"
-									sortable
-									width="180">
-							</el-table-column>
-							<el-table-column
-									prop="unit"
-									label="单位">
-							</el-table-column>
-							<el-table-column label="操作">
-								<template slot-scope="scope">
-									<el-button
-											size="mini"
-											@click="editItem(scope.$index, scope.row)">编辑
-									</el-button>
-									<el-button v-if="!scope.row.hasChildren"
-											size="mini"
-											type="danger"
-											@click="deleteItem(scope.$index, scope.row)">删除
-									</el-button>
-								</template>
-							</el-table-column>
-						</el-table>
-					</el-row>
-					<el-row style="margin-top: 10px;margin-bottom:20px;float: right;">
-						<el-pagination
-								@size-change="loadItems"
-								@current-change="loadItems"
-								:current-page.sync="dicItemsData.currentPage"
-								:page-sizes="[10, 25, 50, 100]"
-								:page-size.sync="dicItemsData.limit"
-								layout="total, sizes, prev, pager, next, jumper"
-								:total="dicItemsData.totalItems">
-						</el-pagination>
-					</el-row>
+	                    </el-col>
+	                </el-row>
+	                <el-row style="margin-top:10px">
+	                    <el-table
+	                            :data="dicItemsData.items"
+	                            style="width: 100%;margin-bottom: 20px;"
+	                            row-key="key"
+	                            highlight-current-row
+	                            @current-change="selectItem"
+	                            border
+	                            default-expand-all
+	                            :tree-props="{children: 'children', hasChildren: 'hasChildren'}">
+	                        <el-table-column
+	                                prop="key"
+	                                label="编码"
+	                                sortable
+	                                width="180">
+	                        </el-table-column>
+	                        <el-table-column
+	                                prop="text"
+	                                label="名称"
+	                                sortable
+	                                width="180">
+	                        </el-table-column>
+	                        <el-table-column
+	                                prop="unit"
+	                                label="单位">
+	                        </el-table-column>
+	                        <el-table-column label="操作">
+	                            <template slot-scope="scope">
+	                                <el-button
+	                                        size="mini"
+	                                        @click="editItem(scope.$index, scope.row)">编辑
+	                                </el-button>
+	                                <el-button v-if="!scope.row.hasChildren"
+	                                           size="mini"
+	                                           type="danger"
+	                                           @click="deleteItem(scope.$index, scope.row)">删除
+	                                </el-button>
+	                            </template>
+	                        </el-table-column>
+	                    </el-table>
+	                </el-row>
+	                <el-row style="margin-top: 10px;margin-bottom:20px;float: right;">
+	                    <el-pagination
+	                            @size-change="loadItems"
+	                            @current-change="loadItems"
+	                            :current-page.sync="dicItemsData.currentPage"
+	                            :page-sizes="[10, 25, 50, 100]"
+	                            :page-size.sync="dicItemsData.limit"
+	                            layout="total, sizes, prev, pager, next, jumper"
+	                            :total="dicItemsData.totalItems">
+	                    </el-pagination>
+	                </el-row>
 	
-				</el-card>
+	            </el-card>
 			</el-col>
 		</el-row>
 	            
@@ -206,7 +207,7 @@
 	        // 验证字典项代码唯一
 	        var validItemKeyUnique = (rule, value, callback) => {
 	            axios({
-	                url: this.baseUrl+'dicItem/key',
+	                url:this.baseUrl+ 'dicItem/key',
 	                method: 'get',
 	                params: {
 	                    version: this.version,
@@ -238,22 +239,22 @@
 	            return cts;
 	        };
 
+	        var dicType = "system";
+
 	        return {
 	            /**
 	             *  头部数据
 	             * */
 	            // 根分组代码
-	            parentGroup: 'system',
+				dicType: dicType,
 	            // 当前已激活版本
 	            activedVerson: null,
 	            // 当前版本
-	            version: 'system',
+	            version: dicType,
 
 	            /**
 	             * 左侧栏数据
 	             * */
-	            // 显示已作废字典分组
-	            showVoidedGroup: false,
 	            // 显示新增/编辑分组编辑框
 	            showGroupDialog: false,
 	            // 选中分组
@@ -290,7 +291,8 @@
 	                active: true,
 	                scope: null,
 	                version: this.version,
-	                sortNo: null
+	                sortNo: null,
+					type: dicType
 	            },
 	            // 字典dialog属性
 	            dicDialog: {
@@ -316,7 +318,8 @@
 	                description: null,
 	                classify: null,
 	                active: true,
-	                visible: true
+	                visible: true,
+					type: dicType
 	            },
 	
 	            // 字典项dialog
@@ -343,7 +346,9 @@
 	                unit: null,
 	                description: null,
 	                parent: null,
-	                hasChildren: false
+	                hasChildren: false,
+					type: dicType,
+					active: true
 	            },
 	            //字典项部分数据
 	            dicItemsData: {
@@ -370,12 +375,12 @@
 	        // 加载字典分组树
 	        loadDicGroups() {
 	            axios({
-	                url: this.baseUrl+'dicGroup/tree',
+	                url:this.baseUrl+ 'dicGroup/tree',
 	                method: 'get',
 	                headers: {},
 	                params: {
-	                    parentCode: this.parentGroup,
-	                    active: this.showVoidedGroup ? null : true,
+	                	type: this.dicType,
+	                    parentCode: this.dicType,
 	                    version: this.version,
 						withDic:true
 	                }
@@ -408,7 +413,11 @@
 	        // 添加字典或字典组
 	        addGroupOrDic(command) {
 	            if (!this.selectedGroup) {
-	                this.$message.error('请选择所属分组');
+					this.$message({
+						showClose: true,
+						message: '请选择所属分组',
+						type: 'warning'
+					});
 	                return;
 	            }
 	            switch (command) {
@@ -425,7 +434,8 @@
 	                        active: true,
 	                        scope: null,
 	                        version: this.version,
-	                        sortNo: null
+	                        sortNo: null,
+							type: this.dicType
 	                    };
 	                    // this.$refs['addGroupForm'].clearValidate();
 	                    this.groupDialog.show = true;
@@ -441,7 +451,8 @@
 	                        description: null,
 	                        classify: null,
 	                        active: true,
-	                        visible: true
+	                        visible: true,
+							type: this.dicType
 	                    };
 	                    this.dicDialog.show = true;
 	                    break;
@@ -455,7 +466,7 @@
 	            switch (action) {
 	                case 'edit':
 	                    axios({
-	                        url: this.baseUrl+'dicGroup',
+	                        url:this.baseUrl+ 'dicGroup',
 	                        method: 'put',
 	                        headers: {},
 	                        data: this.newGroup
@@ -468,7 +479,7 @@
 	                    this.$refs['addGroupForm'].validate((valid) => {
 	                        if (valid) {
 	                            axios({
-	                                url: this.baseUrl+'dicGroup',
+	                                url:this.baseUrl+ 'dicGroup',
 	                                method: 'post',
 	                                headers: {},
 	                                data: this.newGroup
@@ -497,7 +508,7 @@
 	                case 'edit':
 	                    this.newDic.groupCode = this.newDic.group.code;
 	                    axios({
-	                        url: this.baseUrl+'dic',
+	                        url:this.baseUrl+ 'dic',
 	                        method: 'put',
 	                        headers: {},
 	                        data: this.newDic
@@ -511,7 +522,7 @@
 	                        if (valid) {
 	                            this.newDic.groupCode = this.newDic.group.code;
 	                            axios({
-	                                url: this.baseUrl+'dic',
+	                                url:this.baseUrl+ 'dic',
 	                                method: 'post',
 	                                headers: {},
 	                                data: this.newDic
@@ -538,7 +549,7 @@
 	                this.groupDialog.title = '编辑分组';
 	                this.groupDialog.action = 'edit';
 	                axios({
-	                    url: this.baseUrl+'dicGroup/' + this.selectedGroup.id,
+	                    url:this.baseUrl+ 'dicGroup/' + this.selectedGroup.id,
 	                    method: 'get'
 	                }).then(res => {
 	                    this.newGroup = res.data.content;
@@ -548,14 +559,18 @@
 	                this.dicDialog.title = '编辑字典';
 	                this.dicDialog.action = 'edit';
 	                axios({
-	                    url: this.baseUrl+'dic/' + this.selectedDic.id,
+	                    url:this.baseUrl+ 'dic/' + this.selectedDic.id,
 	                    method: 'get'
 	                }).then(res => {
 	                    this.newDic = res.data.content;
 	                    this.dicDialog.show = true;
 	                })
 	            } else {
-	                this.$message.error("请先选择字典或字典组");
+					this.$message({
+						showClose: true,
+						message: '请先选择字典或字典组',
+						type: 'warning'
+					});
 	            }
 	        },
 	        deleteGroupOrDic() {
@@ -567,7 +582,7 @@
 	                }).then((command) => {
 	                    if ('confirm' == command) {
 	                        axios({
-	                            url: this.baseUrl+'dicGroup/' + this.selectedGroup.id,
+	                            url:this.baseUrl+ 'dicGroup/' + this.selectedGroup.id,
 	                            method: 'delete'
 	                        }).then(res => {
 	                            this.loadDicGroups();
@@ -584,7 +599,7 @@
 	                }).then((command) => {
 	                    if ('confirm' == command) {
 	                        axios({
-	                            url: this.baseUrl+'dic/' + this.selectedDic.id,
+	                            url:this.baseUrl+ 'dic/' + this.selectedDic.id,
 	                            method: 'delete'
 	                        }).then(res => {
 	                            this.loadDicGroups();
@@ -594,7 +609,11 @@
 	                    // 取消
 	                })
 	            } else {
-	                this.$message.error("请选择要删除的字典组或字典");
+					this.$message({
+						showClose: true,
+						message: '请选择要删除的字典组或字典',
+						type: 'warning'
+					});
 	            }
 	        },
 	
@@ -604,11 +623,15 @@
 	        // 加载字典项
 	        loadItems() {
 	            if (!this.selectedDic) {
-	                this.$message.error('请选择字典');
+					this.$message({
+						showClose: true,
+						message: '请选择字典',
+						type: 'warning'
+					});
 	                return;
 	            }
 	            axios({
-	                url: this.baseUrl+'dicItem',
+	                url:this.baseUrl+ 'dicItem',
 	                method: 'get',
 	                headers: {},
 	                params: {
@@ -632,7 +655,11 @@
 	        // 添加项
 	        addItem(command) {
 	            if (!this.selectedDic) {
-	                this.$message.error('请选择字典');
+					this.$message({
+						showClose: true,
+						message: '请选择字典',
+						type: 'warning'
+					});
 	                return;
 	            }
 	            switch (command) {
@@ -647,13 +674,19 @@
 	                        unit: null,
 	                        description: null,
 	                        parent: null,
-	                        hasChildren: false
+	                        hasChildren: false,
+							type: this.dicType,
+							active:true
 	                    };
 	                    this.itemDialog.show = true;
 	                    break;
 	                case 'subItem':
 	                    if (!this.selectedItem) {
-	                        this.$message.error('请选择字典项');
+							this.$message({
+								showClose: true,
+								message: '请选择字典项',
+								type: 'warning'
+							});
 	                        return;
 	                    }
 	                    this.itemDialog.title = '新增子项';
@@ -666,7 +699,9 @@
 	                        unit: null,
 	                        description: null,
 	                        parent: this.selectedItem,
-	                        hasChildren: false
+	                        hasChildren: false,
+							type: this.dicType,
+							active:true
 	                    };
 	                    this.itemDialog.show = true;
 	                    break;
@@ -692,7 +727,7 @@
 	            switch (action) {
 	                case 'edit':
 	                    axios({
-	                        url: this.baseUrl+'dicItem',
+	                        url:this.baseUrl+ 'dicItem',
 	                        method: 'put',
 	                        data: this.newItem
 	                    }).then(res => {
@@ -738,7 +773,7 @@
 	            }).then((command) => {
 	                if ('confirm' == command) {
 	                    axios({
-	                        url: this.baseUrl+'dicItem/' + data.id,
+	                        url:this.baseUrl+ 'dicItem/' + data.id,
 	                        method: 'delete'
 	                    }).then(res => {
 	                        this.loadItems();
@@ -759,10 +794,6 @@
 	        /**
 	         * 左侧
 	         */
-	        // 显示已作废字典（字典组）
-	        showVoidedGroup: function () {
-	            this.loadDicGroups();
-	        },
 	        // 字典组名称
 	        filterGroupName: function (val) {
 	            this.$refs.dicGroupTree.filter(val);
@@ -794,8 +825,7 @@
         line-height: 35px
     }
 	.card_height{
-        min-height: calc(100vh - 103px);
-		max-height: calc(100vh - 103px);
+        min-height: calc(100vh - 125px);
+		max-height: calc(100vh - 125px);
     }
-	
 </style>
